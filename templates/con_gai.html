@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <title>Truyện Con Gái</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .cat-wrap{max-width:1200px;margin:24px auto;padding:0 16px}
+    .filter-bar{background:#1f1f1f;border:1px solid #2a2b2f;border-radius:10px;padding:16px;margin-bottom:20px}
+    .filter-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:8px 0}
+    .filter-label{opacity:.85;min-width:90px}
+    .chip{padding:6px 12px;border:1px solid #2c2c2c;border-radius:8px;background:#222;cursor:pointer;font-size:14px}
+    .chip.active{border-color:#4ea1ff;background:#2b3443}
+    .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}
+    @media (max-width:1200px){.grid{grid-template-columns:repeat(5,1fr)}}
+    @media (max-width:992px){.grid{grid-template-columns:repeat(4,1fr)}}
+    @media (max-width:768px){.grid{grid-template-columns:repeat(3,1fr)}}
+    @media (max-width:576px){.grid{grid-template-columns:repeat(2,1fr)}}
+    .card{background:#151515;border:1px solid #262626;border-radius:10px;overflow:hidden}
+    .thumb{position:relative;aspect-ratio:3/4;overflow:hidden}
+    .thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .25s}
+    .card:hover .thumb img{transform:scale(1.04)}
+    .badge-time{position:absolute;top:8px;left:8px;background:#23a6f0;color:#1b1818;font-size:12px;padding:4px 8px;border-radius:6px}
+    .body{padding:10px}
+    .title{font-size:14px;line-height:1.3;margin-bottom:6px;min-height:36px}
+    .meta{font-size:12px;opacity:.85}
+    .section-title{display:flex;align-items:center;gap:8px;font-size:20px;margin:12px 0 16px}
+    .sort-tabs{display:flex;gap:12px;margin-left:auto}
+    .sort-tabs a{font-size:14px;padding:6px 8px;border-radius:6px}
+    .sort-tabs a.active{background:#2b3443}
+    body {
+  background-color: #1a1a1a; /* nền đen than */
+  color: #f0f0f0;           /* chữ sáng */
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+a {
+  color: #ffffff;           /* chữ trắng */
+  text-decoration: none;    /* bỏ gạch chân */
+}
+
+a:hover {
+  color: #ff3c3c;           /* khi hover thì đổi sang vàng cho nổi bật */
+  /* text-decoration: underline; nếu muốn hover có gạch chân thì giữ, không thì bỏ */
+}
+
+  </style>
+</head>
+<body>
+  <!-- Header của bạn có thể include ở đây -->
+  <div class="cat-wrap">
+    <div class="section-title">
+      <span style="color:#5cc7ff">📚</span>
+      <strong>Truyện Con Gái</strong>
+      <div class="sort-tabs" id="sortTabs">
+        <a href="{{ url_for('page_con_gai', status=filters.status, country=filters.country, sort='new') }}"
+           class="{{ 'active' if filters.sort=='new' else '' }}">Mới cập nhật</a>
+        <a href="{{ url_for('page_con_gai', status=filters.status, country=filters.country, sort='chapter') }}"
+           class="{{ 'active' if filters.sort=='chapter' else '' }}">Chương mới</a>
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      <div class="filter-row">
+        <div class="filter-label">Tình trạng</div>
+        {% set s = filters.status %}
+        <a class="chip {{ 'active' if not s else '' }}"
+           href="{{ url_for('page_con_gai', country=filters.country, sort=filters.sort) }}">Tất cả</a>
+        <a class="chip {{ 'active' if s=='ongoing' else '' }}"
+           href="{{ url_for('page_con_gai', status='ongoing', country=filters.country, sort=filters.sort) }}">Đang tiến hành</a>
+        <a class="chip {{ 'active' if s=='completed' else '' }}"
+           href="{{ url_for('page_con_gai', status='completed', country=filters.country, sort=filters.sort) }}">Hoàn thành</a>
+      </div>
+      <div class="filter-row">
+        <div class="filter-label">Quốc gia</div>
+        {% set c = filters.country %}
+        {% for qg in ['Trung Quốc','Việt Nam','Hàn Quốc','Nhật Bản','Mỹ'] %}
+          <a class="chip {{ 'active' if c==qg else '' }}"
+             href="{{ url_for('page_con_gai', status=filters.status, country=qg, sort=filters.sort) }}">{{ qg }}</a>
+        {% endfor %}
+        <a class="chip {{ 'active' if not c else '' }}"
+           href="{{ url_for('page_con_gai', status=filters.status, sort=filters.sort) }}">Tất cả</a>
+      </div>
+    </div>
+
+    <div class="grid">
+      {% for r in rows %}
+      <a class="card" href="/truyen/{{ r.id }}">
+        <div class="thumb">
+          <img src="{{ r.cover_url }}" alt="{{ r.title }}">
+          {% if r.ago %}<div class="badge-time">{{ r.ago }}</div>{% endif %}
+        </div>
+        <div class="body">
+          <div class="title">{{ r.title }}</div>
+          <div class="meta">{{ r.latest_chapter }}</div>
+        </div>
+      </a>
+      {% endfor %}
+      {% if not rows %}
+        <div style="grid-column:1/-1;opacity:.8;padding:24px">Không có truyện phù hợp.</div>
+      {% endif %}
+    </div>
+  </div>
+</body>
+</html>

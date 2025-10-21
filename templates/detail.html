@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ comic.title }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      referrerpolicy="no-referrer">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#0f1419; --card:#161b22; --muted:#9ba3af; --border:#30363d;
+      --accent:#1f6feb; --success:#238636; --text:#e6edf3;
+    }
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,Segoe UI,Roboto,Arial}
+    .wrap{max-width:1100px;margin:24px auto;padding:0 16px}
+    .crumbs{color:var(--muted);font-size:14px;margin-bottom:12px}
+    .card{display:grid;grid-template-columns:170px 1fr;gap:18px;background:var(--card);
+          border:1px solid var(--border);border-radius:14px;padding:16px}
+    .cover{width:170px;aspect-ratio:3/4;object-fit:cover;border-radius:10px}
+    h1{margin:0 0 6px;font-size:22px}
+    .info{display:grid;grid-template-columns:160px 1fr;row-gap:8px;font-size:14px}
+    .label{color:var(--muted)}
+    .tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .tag{border:1px solid var(--border);padding:4px 8px;border-radius:999px;font-size:12px}
+    .btns{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+    .btn{background:var(--border);color:#fff;padding:8px 12px;border:0;border-radius:8px;cursor:pointer;text-decoration:none}
+    .btn--primary{background:var(--accent)}
+    .btn--success{background:var(--success)}
+    .section{margin-top:20px}
+    .section h3{margin:0 0 10px}
+    .desc{color:var(--muted);line-height:1.6}
+    .chapbar{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--border);
+             border-radius:10px;padding:10px;position:sticky;bottom:10px}
+    select, .go{background:#0b0f14;color:#fff;border:1px solid var(--border);border-radius:8px;padding:6px 10px}
+    .list{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+    .row{display:flex;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--border)}
+    .row:first-child{border-top:0}
+    .row a{color:#fff;text-decoration:none}
+    .row a:hover{text-decoration:underline}
+    @media(max-width:720px){ .card{grid-template-columns:1fr} .cover{width:100%} .info{grid-template-columns:1fr 1fr} }
+    .row a {
+    color: #fff;
+    text-decoration: none;
+    transition: all 0.2s ease; /* tạo hiệu ứng mượt */
+    }
+
+    .row a:hover {
+    color: #ff4d4d;           /* khi hover hiện màu đỏ */
+    text-decoration: none;    /* bỏ gạch chân */
+    transform: scale(1.05);   /* phóng to nhẹ */
+    }
+    /* Dropzone */
+.dz{
+  position:relative;
+  border:2px dashed #334155;
+  background:#0b1220;
+  border-radius:12px;
+  padding:18px;
+  text-align:center;
+  cursor:pointer;
+  transition:border .2s, background .2s, transform .05s;
+}
+.dz:hover{ border-color:#60a5fa; background:#0f172a }
+.dz.dragover{ border-color:#93c5fd; background:#0f172a; transform:scale(1.002) }
+.dz i{ font-size:26px; color:#60a5fa }
+.dz p{ margin:8px 0 0; color:#cbd5e1; line-height:1.4 }
+.dz p span{ color:#93c5fd; text-decoration:underline }
+.dz input{ position:absolute; inset:0; opacity:0; cursor:pointer }
+
+/* Preview grid */
+.dz-preview{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(72px, 1fr));
+  gap:8px;
+  margin-top:10px;
+  max-height:180px;
+  overflow:auto;
+}
+.dz-preview .thumb{
+  position:relative;
+  border-radius:8px;
+  overflow:hidden;
+  border:1px solid #243041;
+  background:#0b1220;
+}
+.dz-preview img{
+  width:100%;
+  height:72px;
+  object-fit:cover;
+  display:block;
+}
+.dz-preview .cap{
+  position:absolute;
+  right:4px; bottom:2px;
+  background:rgba(0,0,0,.55);
+  color:#fff; font-size:10px;
+  padding:1px 4px; border-radius:4px;
+}
+/* ============ Button System ============ */
+:root{
+  --btn-radius: 10px;
+  --btn-shadow: 0 6px 16px rgba(0,0,0,.25);
+  --btn-shadow-sm: 0 3px 10px rgba(0,0,0,.2);
+  --btn-text: #eaf2ff;
+  --btn-muted: #c8d3ea;
+  --brand-green1: #2ecc71;  /* Đọc từ đầu */
+  --brand-blue1:  #3498db;  /* Đọc tiếp */
+  --brand-pink1:  #e84393;  /* Thích */
+  --brand-gray1:  #4b5563;  /* Sửa truyện */
+  --brand-lime1:  #27ae60;  /* Theo dõi */
+  --brand-yellow: #f1c40f;  /* tuỳ chọn */
+}
+
+.btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  gap:.5rem;
+  font-weight:700; letter-spacing:.2px;
+  padding:.6rem 1rem;
+  border-radius: var(--btn-radius);
+  border:1px solid transparent;
+  text-decoration:none;
+  cursor:pointer;
+  user-select:none;
+  transition: all .18s ease;
+  box-shadow: var(--btn-shadow-sm);
+  backdrop-filter: saturate(120%);
+  -webkit-tap-highlight-color: transparent;
+}
+.btn i{ font-size:.95em; margin-right:.25rem; }
+
+/* kích thước */
+.btn-sm{ padding:.45rem .75rem; font-size:.9rem; }
+.btn-lg{ padding:.8rem 1.15rem; font-size:1.02rem; }
+
+/* hiệu ứng chung */
+.btn:hover{ transform: translateY(-1px); box-shadow: var(--btn-shadow); }
+.btn:active{ transform: translateY(0); box-shadow: var(--btn-shadow-sm); opacity:.95; }
+
+/* ======= biến thể màu (giống hình mẫu) ======= */
+.btn-green{
+  color:var(--btn-text);
+  background: linear-gradient(180deg, #39d17f, var(--brand-green1));
+  border-color:#2bbf69;
+}
+.btn-blue{
+  color:var(--btn-text);
+  background: linear-gradient(180deg, #55aef0, var(--brand-blue1));
+  border-color:#288bd0;
+}
+.btn-pink{
+  color:#fff;
+  background: linear-gradient(180deg, #ff6ea8, var(--brand-pink1));
+  border-color:#d93d86;
+}
+.btn-gray{
+  color:#e5e7eb;
+  background: linear-gradient(180deg, #5b6472, var(--brand-gray1));
+  border-color:#3f4754;
+}
+.btn-lime{
+  color:#eafff1;
+  background: linear-gradient(180deg, #31cc76, var(--brand-lime1));
+  border-color:#219a55;
+}
+
+/* viền sáng nhẹ giống site tham chiếu */
+.btn-green,.btn-blue,.btn-pink,.btn-gray,.btn-lime{
+  box-shadow: 0 6px 16px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.12);
+}
+
+/* outline (nếu cần) */
+.btn-outline{
+  color:var(--btn-muted);
+  background: rgba(255,255,255,.05);
+  border-color: rgba(148,163,184,.35);
+}
+.btn-outline:hover{ color:#fff; }
+
+/* nhóm nút */
+.btn-row{ display:flex; flex-wrap:wrap; gap:.6rem; }
+
+/* khối info dạng 2 cột: Label | Value (chỉ thêm nếu chưa có) */
+.info {
+  display: grid;
+  grid-template-columns: 120px 1fr; /* label 120px, phần nội dung chiếm phần còn lại */
+  column-gap: 16px;
+  row-gap: 8px;
+  align-items: start;
+}
+
+/* cụm thẻ thể loại */
+.genre-tags {
+  display: flex;
+  flex-wrap: wrap;   /* đủ chỗ thì xuống hàng */
+  gap: 8px;          /* khoảng cách giữa các chip */
+  max-width: 100%;
+}
+
+.genre-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #0e2a4a;        /* màu nền chip */
+  border: 1px solid #375a7f;  /* viền nhẹ */
+  color: #bcdcff;
+  font-size: 12px;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;        /* không xuống dòng trong từng chip */
+}
+
+.genre-tag:hover {
+  background: #123861;
+  border-color: #4a77a8;
+}
+
+.genre-empty {
+  color: #8892a6;
+  font-style: italic;
+}
+
+.btn.btn-danger{
+  background:#c0392b;       /* màu giống hệ nút */
+  color:#fff;
+  border:none;
+  padding:8px 14px;         /* cùng chiều cao/độ dày */
+  border-radius:10px;       /* bo góc đồng nhất */
+  font-weight:600;
+}
+.btn.btn-danger:hover{ filter:brightness(1.1); }
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  height:40px;
+  padding:0 14px;
+  border-radius:10px;
+  border:none;
+  cursor:pointer;
+  font-weight:600;
+}
+
+ /* bình luận */
+.cmt-item{ display:flex; gap:10px; background:#111826; border:1px solid #2b2f3a; border-radius:10px; padding:10px; }
+.cmt-avt{ width:36px; height:36px; border-radius:50%; object-fit:cover; flex:0 0 36px; }
+.cmt-body{ flex:1; }
+.cmt-name{ font-weight:600; color:#e5e7eb; }
+.cmt-time{ color:#94a3b8; font-size:12px; margin-top:2px; }
+:root { --content-width: 1024px; }        /* đổi 900–1024 tùy ý */
+#comments, 
+#comments .comment-form,
+#comments .comment-actions,
+#comments .comment-list{
+  max-width: var(--content-width);
+  margin: 0 auto;
+}
+/* Khóa chiều cao + bật thanh cuộn cho danh sách bình luận */
+#cmtList{
+  height: 420px;           /* thử 320–520px tùy bạn */
+  overflow-y: auto;        /* bật cuộn dọc */
+  overflow-x: hidden;
+  padding-right: 6px;      /* chừa chỗ scrollbar */
+}
+
+/* Scrollbar cho Chrome/Edge/Safari */
+#cmtList::-webkit-scrollbar{ width: 8px; }
+#cmtList::-webkit-scrollbar-track{ background: #0f1623; border-radius: 8px; }
+#cmtList::-webkit-scrollbar-thumb{ background: #2b2f3a; border-radius: 8px; }
+#cmtList::-webkit-scrollbar-thumb:hover{ background: #3a4354; }
+
+/* Firefox */
+#cmtList{ scrollbar-width: thin; scrollbar-color: #2b2f3a #0f1623; }
+/* Giới hạn chiều cao và bật cuộn cho modal__card */
+.modal__card {
+  background: #1e1e1e;
+  border-radius: 10px;
+  width: 420px;
+  max-height: 90vh;        /* 👈 Giới hạn chiều cao modal */
+  overflow-y: auto;         /* 👈 Cuộn được bên trong */
+  padding: 25px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.4);
+  color: #fff;
+
+  /* scrollbar style */
+  scrollbar-width: thin;
+  scrollbar-color: #555 #1e1e1e;
+}
+
+.modal__card::-webkit-scrollbar {
+  width: 6px;
+}
+.modal__card::-webkit-scrollbar-thumb {
+  background-color: #555;
+  border-radius: 6px;
+}
+.modal__card::-webkit-scrollbar-track {
+  background-color: #1e1e1e;
+}
+
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <div class="crumbs">Trang chủ / {{ comic.title }}</div>
+
+    <div class="card">
+      <img class="cover" src="{{ comic.cover_url }}" alt="{{ comic.title }}">
+      <div>
+        <h1>{{ comic.title }}</h1>
+
+        <div class="info">
+          <div class="label">Tác giả</div><div>{{comic.authors or 'Đang cập nhật'}}</div>
+          <div class="label">Tình trạng</div><div>{{ comic.status or '' }}</div>
+          <div class="label">Quốc gia</div><div>{{ comic.country or '—' }}</div>
+          <div class="label">Chương mới nhất</div><div>{{ comic.latest_chapter or '—' }}</div>
+          <div class="label">Lượt theo dõi</div><div><span id="followCountInfo">{{ follow_count }}</span></div>
+          <div class="label">Lượt thích</div><div><span id="likeCount">{{ like_count }}</span></div>
+          <div class="label">Lượt xem</div><div>{{ view_count or 0 }}</div>
+          <div class="label">Đánh giá</div>
+<div>
+  <div id="stars" data-slug="{{ comic.slug }}" style="display:inline-block;"></div>
+  <small id="userNote" style="margin-left:6px; color:#ccc; font-size:13px;"></small>
+
+  <div id="avgRating" style="font-size:13px; color:#9ba3af;">
+    ★ {{ "%.1f"|format(rate_info.avg_rating or 0) }}/5 ({{ rate_info.total or 0 }} lượt)
+  </div>
+</div>
+
+          
+
+          <div class="label">Cập nhật</div><div>{{ comic.updated_at }}</div>
+          <div class="label">Thể loại</div>
+<div>
+  <div class="genre-tags">
+    {% for g in genres %}
+      <a class="genre-tag" href="/the-loai/{{ g.slug }}">{{ g.name }}</a>
+    {% else %}
+      <span class="genre-empty">Chưa có</span>
+    {% endfor %}
+  </div>
+</div>
+        </div>
+
+        <div class="tags">
+          {% if comic.audience %}<span class="tag">{{ comic.audience }}</span>{% endif %}
+          {% if comic.category %}<span class="tag">{{ comic.category }}</span>{% endif %}
+        </div>
+
+        <div class="btns">
+          {% set first_num = chapters[0].number if chapters else 1 %}
+            <a class="btn btn--success" href="{{ url_for('read_chapter', slug=comic.slug, number=first_num) }}">
+            Đọc từ đầu
+            </a>
+            <a class="btn btn--primary"
+            href="{{ url_for('read_chapter', slug=comic.slug, number=(comic.latest_chapter or first_num)|int) }}">
+            Đọc tiếp
+            </a>
+
+          <button
+  id="followBtn"
+  class="btn"
+  data-slug="{{ comic.slug }}"
+>
+  {% if followed %}Đang theo dõi{% else %}Theo dõi{% endif %}
+</button>
+<!-- <span id="followCount" class="tag">{{ follow_count }}</span> -->
+
+          <button
+  id="likeBtn"
+  class="btn"
+  data-slug="{{ comic.slug }}"
+>
+  {% if liked %}Đã thích{% else %}Thích{% endif %}
+</button>
+
+
+          {% if current_role == 'admin' %}
+
+  <button class="btn" onclick="openModal('editComicModal')">Sửa truyện</button>
+  <button class="btn btn--success" onclick="openModal('addChapterModal')">Thêm chương</button>
+  <form method="post"
+      action="{{ url_for('admin.delete_comic', slug=comic.slug) }}"
+      onsubmit="return confirm('XÓA TOÀN BỘ TRUYỆN (bao gồm tất cả chương, ảnh, theo dõi, thích…)?');"
+      class="inline">
+  <button class="btn btn-danger">Xóa truyện</button>
+</form>
+{% endif %}
+
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>📖 Giới thiệu</h3>
+      <div class="desc">
+        {% if comic.description %}
+          {{ comic.description }}
+        {% else %}
+          Chưa có mô tả cho truyện này. Bạn có thể thêm cột <code>description</code> vào bảng <code>comics</code> để hiển thị phần giới thiệu.
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>📚 Danh sách chương</h3>
+      {% if chapters and chapters|length %}
+        <div class="list">
+          {% for ch in chapters %}
+            <div class="row">
+              <a href="/doc/{{ comic.slug }}/{{ ch.number }}">Chương {{ ch.number }} — {{ ch.title or '' }}</a>
+              <!-- <span style="color:#9ba3af">{{ ch.created_at }}</span> -->
+
+  {% if current_role == 'admin' %}
+              <form class="inline-form"
+            action="{{ url_for('admin.delete_chapter', slug=comic.slug, chapter_id=ch.id) }}"
+            method="post"
+            onsubmit="return confirm('Xoá chương {{ ch.number }}?');">
+        <button type="submit" class="btn btn-danger btn-sm">Xoá chương </button>
+      </form>{% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="desc">Chưa có chương nào.</div>
+      {% endif %}
+    </div>
+    <!-- thanh chọn nhanh giống reader -->
+    <div class="chapbar">
+      <a class="btn" href="/">Trang chủ</a>
+      
+      
+    </div>
+<!-- BÌNH LUẬN -->
+<section id="comments" class="mt-6">
+  <h3 style="font-weight:700; font-size:20px; margin-bottom:10px;">💬 Bình luận</h3>
+
+  <!-- Form gửi bình luận -->
+  <div class="comment-form" style="margin-bottom:12px;">
+    <textarea id="cmtInput" rows="3" placeholder="Viết bình luận của bạn..." 
+              style="width:100%; background:#111826; color:#e5e7eb; border:1px solid #2b2f3a; border-radius:10px; padding:10px;"></textarea>
+    <div style="text-align:right; margin-top:8px;">
+      <button id="cmtSubmit" class="btn" style="background:#2563eb; color:#fff; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;">
+        Gửi bình luận
+      </button>
+    </div>
+  </div>
+
+  <!-- Danh sách bình luận -->
+  <div id="cmtList" class="comment-list" style="display:flex; flex-direction:column; gap:2px;"></div>
+
+  <!-- Phân trang đơn giản -->
+  <div id="cmtMoreWrap" style="text-align:center; margin-top:10px;">
+    <button id="cmtMore" class="btn" style="display:none; background:#2d2f3a; color:#e5e7eb; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;">
+      Tải thêm
+    </button>
+  </div>
+</section>
+
+
+    
+
+  </div>
+
+  <script>
+    function go(){
+      var s = document.getElementById('chapterSelect');
+      if(s && s.value) location.href = s.value;
+    }
+  </script>
+  <!-- Modal SỬA TRUYỆN -->
+<div id="editComicModal" class="modal">
+  <div class="modal__card">
+    <h3>Sửa truyện</h3>
+    <form method="POST" action="{{ url_for('admin.edit_comic', slug=comic.slug) }}" enctype="multipart/form-data">
+  <div class="form-row">
+    <label>Tiêu đề</label>
+    <input name="title" value="{{ comic.title }}" required>
+  </div>
+
+  <div class="form-row">
+    <label>Tác giả</label>
+    <input name="authors" value="{{ comic.authors or '' }}">
+  </div>
+
+  <div class="form-row">
+    <label>Tình trạng</label>
+    <input name="status" value="{{ comic.status or '' }}">
+  </div>
+
+  <div class="form-row">
+    <label>Quốc gia</label>
+    <input name="country" value="{{ comic.country or '' }}">
+  </div>
+
+  <div class="form-row">
+    <label>Mô tả</label>
+    <textarea name="description" rows="4">{{ comic.description or '' }}</textarea>
+  </div>
+
+  <!-- ✅ THÊM PHẦN ĐỔI ẢNH BÌA -->
+  <div class="form-row">
+    <label>Ảnh bìa mới</label>
+    <input type="file" name="cover_url" accept="image/*" onchange="previewCover(event)">
+    <div style="text-align:center; margin-top:8px;">
+      {% if comic.cover_url %}
+        <img id="previewCoverImg" src="{{ comic.cover_url }}" alt="Preview" style="max-width:120px; border-radius:8px;">
+      {% else %}
+        <img id="previewCoverImg" style="display:none; max-width:120px; border-radius:8px;">
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="actions">
+    <button type="button" class="btn" onclick="closeModal('editComicModal')">Đóng</button>
+    <button type="submit" class="btn btn--primary">Lưu thay đổi</button>
+  </div>
+</form>
+
+<script>
+function previewCover(event) {
+  const img = document.getElementById('previewCoverImg');
+  img.src = URL.createObjectURL(event.target.files[0]);
+  img.style.display = 'inline-block';
+}
+</script>
+
+
+
+      </div>
+
+</div>
+
+<!-- Modal THÊM CHƯƠNG -->
+<div id="addChapterModal" class="modal">
+  <div class="modal__card">
+    <h3>Thêm chương mới</h3>
+
+    <!-- THÊM enctype -->
+    <form method="POST"
+          action="{{ url_for('admin.add_chapter', slug=comic.slug) }}"
+          enctype="multipart/form-data" id="addChapterForm">
+
+      <div class="form-row">
+        <label>Số chương</label>
+        <input name="number" type="number" min="1" required>
+      </div>
+
+      <div class="form-row">
+        <label>Tiêu đề chương</label>
+        <input name="title" placeholder="(tuỳ chọn)">
+      </div>
+
+      <div class="form-group">
+        <label>Ảnh nội dung chương</label>
+        <div class="dz" id="dzPages">
+          <i class="fa-regular fa-images"></i>
+          <p>Kéo & thả ảnh vào đây<br><span>hoặc bấm để chọn</span></p>
+          <input name="pages" id="chapterPages" type="file" accept="image/*" multiple required>
+        </div>
+        <div class="dz-preview" id="dzPreview"></div>
+        <small class="text-muted">Thứ tự ảnh = thứ tự trang.</small>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn" onclick="closeModal('addChapterModal')">Đóng</button>
+        <button class="btn btn--success" type="submit">Thêm</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- mini CSS + JS cho modal -->
+<style>
+  .modal{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.5);z-index:999}
+  .modal.show{display:grid}
+  .modal__card{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:16px;min-width:320px;max-width:520px}
+  .form-row{display:grid;gap:6px;margin:10px 0}
+  .form-row input,.form-row textarea{background:#0b0f14;color:#fff;border:1px solid #30363d;border-radius:8px;padding:8px}
+  .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
+</style>
+<script>
+  function openModal(id){ document.getElementById(id).classList.add('show'); }
+  function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+</script>
+  <!-- nút theo dõi -->
+<script>
+  (() => {
+  const btn = document.getElementById('followBtn');
+  if (!btn) return;
+
+  const slug = btn.dataset.slug;
+  const countInfo = document.getElementById('followCountInfo');
+
+  let busy = false;
+  btn.addEventListener('click', async () => {
+    if (busy) return;
+    busy = true;
+    const oldText = btn.textContent;
+    btn.textContent = 'Đang xử lý...';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(`/api/follow/${slug}/toggle`, { method: 'POST' });
+      if (res.status === 401) {
+        alert('Vui lòng đăng nhập để theo dõi.');
+        return;
+      }
+      const data = await res.json();
+      if (!data.ok) {
+        alert('Có lỗi khi cập nhật theo dõi.');
+        return;
+      }
+
+      // Cập nhật nút
+      btn.textContent = data.followed ? 'Đang theo dõi' : 'Theo dõi';
+      btn.classList.toggle('active', data.followed); // nếu bạn có style cho trạng thái
+      // Cập nhật con số trong khối thông tin
+      if (countInfo) countInfo.textContent = data.count;
+      // 🔔 gọi lại để cập nhật số trên chuông ngay sau khi theo dõi
+      if (data.followed && typeof refreshUnreadBadge === 'function') {
+        refreshUnreadBadge();
+      }
+
+    } catch (e) {
+      console.error(e);
+      alert('Lỗi mạng. Thử lại sau.');
+      btn.textContent = oldText;
+    } finally {
+      busy = false;
+      btn.disabled = false;
+    }
+  });
+})();
+</script>
+<!-- nút thích -->
+<script>
+(() => {
+  const btn = document.getElementById('likeBtn');
+  if (!btn) return;
+
+  const slug    = btn.dataset.slug;               // slug của truyện (đặt trên nút)
+  const countEl = document.getElementById('likeCount'); // nơi hiển thị tổng lượt thích (nếu có)
+
+  let busy = false;
+  btn.addEventListener('click', async () => {
+    if (busy) return;
+    busy = true;
+
+    const old = btn.textContent;
+    btn.textContent = 'Đang xử lý...';
+    btn.disabled = true;
+
+    try {
+      const res  = await fetch(`/api/like/${slug}/toggle`, { method: 'POST' });
+      if (res.status === 401) { alert('Vui lòng đăng nhập để thích.'); return; }
+
+      const data = await res.json();
+      if (!data.ok) { alert('Có lỗi khi cập nhật thích.'); return; }
+
+      // Cập nhật nút + đếm
+      btn.textContent = data.liked ? 'Đã thích' : 'Thích';
+      btn.classList.toggle('active', data.liked);
+      if (countEl) countEl.textContent = data.count;
+
+      // 🔔 Nếu vừa LIKE thành công, làm tươi badge chuông
+      if (data.liked && typeof refreshUnreadBadge === 'function') {
+        refreshUnreadBadge(); // gọi API /notifications/unread-count và update badge
+      } else if (data.liked) {
+        // fallback nếu trang này chưa có hàm refreshUnreadBadge()
+        const badge = document.getElementById('notifyBadge');
+        if (badge) {
+          const n = parseInt(badge.textContent || '0', 10) || 0;
+          const next = n + 1;
+          badge.textContent = next > 99 ? '99+' : String(next);
+          badge.hidden = false;
+        }
+      }
+
+    } catch (e) {
+      console.error(e);
+      btn.textContent = old;
+    } finally {
+      btn.disabled = false;
+      busy = false;
+    }
+  });
+})();
+</script>
+
+<script>
+(function(){
+  const dz = document.getElementById('dzPages');
+  const input = document.getElementById('chapterPages');
+  const preview = document.getElementById('dzPreview');
+
+  function render(files){
+    preview.innerHTML = '';
+    [...files].forEach((f, i)=>{
+      if(!f.type.startsWith('image/')) return;
+      const url = URL.createObjectURL(f);
+      const div = document.createElement('div');
+      div.className = 'thumb';
+      div.innerHTML = `<img src="${url}" alt="">
+                       <span class="cap">${i+1}</span>`;
+      preview.appendChild(div);
+    });
+  }
+
+  // Drag & drop
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('dragover');
+    input.files = e.dataTransfer.files;
+    render(input.files);
+  });
+
+  // Chọn file bằng click
+  input.addEventListener('change', e => render(e.target.files));
+})();
+</script>
+<script>
+  // Xóa CHƯƠNG (AJAX)
+  document.querySelectorAll('.delete-chap').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('Xóa chương này?')) return;
+      const id = btn.dataset.id;
+      const res = await fetch(`/api/chapter/${id}/delete`, { method: 'POST' });
+      const data = await res.json();
+      if (data.ok) {
+        document.getElementById(`chap-${id}`)?.remove();
+      } else {
+        alert(data.error || 'Xóa chương thất bại');
+      }
+    });
+  });
+
+  // Xóa TRUYỆN (AJAX)
+  const delComicBtn = document.getElementById('btn-delete-comic');
+  if (delComicBtn) {
+    delComicBtn.addEventListener('click', async () => {
+      if (!confirm('Xóa toàn bộ truyện này? Hành động không thể hoàn tác.')) return;
+      const res = await fetch(`/api/comic/{{ comic.slug }}/delete`, { method: 'POST' });
+      const data = await res.json();
+      if (data.ok) {
+        window.location.href = '/';
+      } else {
+        alert(data.error || 'Xóa truyện thất bại');
+      }
+    });
+  }
+</script>
+<script>
+(() => {
+  const slug = "{{ comic.slug }}"; // nếu bạn render biến slug; nếu khác, chỉnh lại cho đúng
+
+  const list    = document.getElementById('cmtList');
+  const input   = document.getElementById('cmtInput');
+  const submit  = document.getElementById('cmtSubmit');
+  const moreBtn = document.getElementById('cmtMore');
+  // Enter để gửi, Shift+Enter để xuống dòng
+input.addEventListener('keydown', (e) => {
+  // tránh gửi khi đang gõ tiếng Việt (IME composition)
+  if (e.isComposing) return;
+
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();                 // không xuống dòng
+    const content = (input.value || '').trim();
+    if (!content) return;               // rỗng thì không gửi
+    submit.click();                     // gọi nút Gửi
+  }
+});
+
+  let page = 1, total = 0, limit = 20, loading = false;
+
+  function itemTpl(c){
+  const time = c.created_at ? new Date(c.created_at).toLocaleString() : '';
+  const user = c.username || 'Ẩn danh';
+  const avt  = c.avatar_url || '/static/img/default-avatar.png'; // ảnh mặc định
+  return `
+    <div class="cmt-item">
+      <img class="cmt-avt" src="${avt}" alt="">
+      <div class="cmt-body">
+        <div class="cmt-name">${user}</div>
+        <div style="color:#cbd5e1; white-space:pre-wrap;">${escapeHtml(c.content)}</div>
+        <div class="cmt-time">${time}</div>
+      </div>
+    </div>
+  `;
+}
+
+
+  function escapeHtml(s){
+    return (s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  async function loadComments(nextPage=1){
+    if (loading) return;
+    loading = true;
+    try{
+      const res = await fetch(`/api/comments/${slug}?page=${nextPage}`);
+      const data = await res.json();
+      if (data.ok){
+        total = data.total; limit = data.limit || limit;
+        if (nextPage === 1) list.innerHTML = '';
+        for (const c of data.data){
+          list.insertAdjacentHTML('beforeend', itemTpl(c));
+        }
+        page = nextPage;
+        // hiển thị nút Tải thêm nếu còn dữ liệu
+        const shown = page * limit;
+        moreBtn.style.display = shown < total ? 'inline-block' : 'none';
+      }
+    } finally {
+      loading = false;
+    }
+  }
+
+  // Tự load thêm khi kéo gần cuối danh sách
+list.addEventListener('scroll', () => {
+    const nearBottom = list.scrollTop + list.clientHeight >= list.scrollHeight - 40;
+    const shown = page * limit;
+    if (nearBottom && shown < total && !loading) {
+      loadComments(page + 1);
+    }
+  });
+
+  moreBtn?.addEventListener('click', () => loadComments(page + 1));
+
+  submit?.addEventListener('click', async () => {
+    const content = (input.value || '').trim();
+    if (!content) { input.focus(); return; }
+    submit.disabled = true;
+    try{
+      const res = await fetch(`/api/comments/${slug}`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({content})
+      });
+      if (res.status === 401){ alert('Vui lòng đăng nhập để bình luận'); return; }
+      const data = await res.json();
+      if (!data.ok){ alert('Gửi bình luận thất bại'); return; }
+
+      // clear & reload trang 1 để thấy bình luận mới
+      input.value = '';
+      await loadComments(1);
+
+      // (tuỳ chọn) cập nhật badge chuông nếu bạn muốn
+      if (typeof refreshUnreadBadge === 'function') {
+        refreshUnreadBadge();
+      }
+    } finally {
+      submit.disabled = false;
+    }
+  });
+
+  // tải lần đầu
+  loadComments(1);
+})();
+</script>
+<!-- đánh giá -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const wrap = document.getElementById("stars");
+  if (!wrap) return;
+
+  const slug = wrap.dataset.slug;
+  const avgEl = document.getElementById("avgRating");
+  const note = document.getElementById("userNote");
+  const userRating = Number("{{ user_rating or 0 }}");
+  let selected = userRating || 0;
+
+  // tạo 5 sao
+  wrap.innerHTML = [...Array(5)].map((_, i) =>
+    `<i class="fa-solid fa-star" data-v="${i+1}" style="color:#555;cursor:pointer;font-size:22px;margin-right:3px;"></i>`
+  ).join("");
+
+  const stars = wrap.querySelectorAll("i");
+
+  // tô sẵn nếu user đã đánh giá
+  if (selected > 0) {
+    stars.forEach((s, i) => s.style.color = i < selected ? "#f1c40f" : "#555");
+    note.textContent = "(Đánh giá của bạn)";
+  }
+
+  // hover
+  wrap.addEventListener("mouseover", e => {
+    const v = e.target.dataset.v;
+    if (!v) return;
+    stars.forEach((s, i) => s.style.color = i < v ? "#f1c40f" : "#555");
+  });
+
+  wrap.addEventListener("mouseout", () => {
+    stars.forEach((s, i) => s.style.color = i < selected ? "#f1c40f" : "#555");
+  });
+
+  // click gửi đánh giá
+  wrap.addEventListener("click", async e => {
+    const v = parseInt(e.target.dataset.v);
+    if (!v) return;
+    selected = v;
+
+    stars.forEach((s, i) => s.style.color = i < v ? "#f1c40f" : "#555");
+    note.textContent = "(Đánh giá của bạn)";
+
+    try {
+      const res = await fetch(`/api/rate/${slug}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rating: v })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        avgEl.textContent = `★ ${data.avg}/5 (${data.total} lượt)`;
+      } else {
+        alert(data.msg);
+      }
+    } catch (err) {
+      alert("Không thể kết nối máy chủ.");
+    }
+  });
+});
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+{% block title %}Quản lý tất cả truyện{% endblock %}
+
+{% block content %}
+<style>
+  .manage-container {
+    background: #1b1b1b;
+    border-radius: 16px;
+    padding: 25px;
+    color: #fff;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.08);
+  }
+
+  .manage-title {
+    font-size: 26px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 25px;
+    color: #4fc3f7;
+  }
+
+  table.manage-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #fff;
+  }
+
+  table.manage-table th {
+    background-color: #222;
+    color: #4fc3f7;
+    padding: 12px 10px;
+    text-align: center;
+  }
+
+  table.manage-table td {
+    background-color: #2a2a2a;
+    padding: 10px;
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  table.manage-table tr:hover td {
+    background-color: #333;
+    transition: background 0.2s ease-in-out;
+  }
+
+  .comic-cover {
+    width: 60px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+  }
+
+  .no-cover {
+    color: #888;
+    font-style: italic;
+  }
+
+  /* Nhóm nút hành động */
+  .action-group {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Style chung cho các nút */
+  .btn-manage {
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #fff;
+    transition: all 0.25s ease;
+  }
+
+  /* Nút Ẩn / Hiện */
+.btn-hide,
+.btn-show {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px; /* tăng kích thước nút */
+  font-size: 15px;    /* chữ to hơn một chút */
+  cursor: pointer;
+  font-weight: 600;
+  color: #fff;
+  transition: all 0.25s ease;
+  min-width: 80px; /* đảm bảo kích thước đồng đều */
+}
+
+/* Màu và hiệu ứng */
+.btn-hide {
+  background: #616161;
+}
+.btn-hide:hover {
+  background: #424242;
+  transform: translateY(-2px);
+}
+
+.btn-show {
+  background: #43a047;
+}
+.btn-show:hover {
+  background: #2e7d32;
+  transform: translateY(-2px);
+}
+
+
+/* ===== Nút Sửa ===== */
+.btn-edit {
+  background: linear-gradient(135deg, #1e88e5, #42a5f5);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(66, 165, 245, 0.4);
+}
+
+.btn-edit:hover {
+  background: linear-gradient(135deg, #42a5f5, #64b5f6);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(66, 165, 245, 0.6);
+}
+
+.btn-edit:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 3px rgba(66, 165, 245, 0.4);
+}
+
+
+  /* Nút Xóa */
+  .btn-delete {
+    background: #e53935;
+  }
+  .btn-delete:hover {
+    background: #b71c1c;
+    transform: translateY(-2px);
+  }
+
+  @media (max-width: 768px) {
+    table.manage-table th,
+    table.manage-table td {
+      font-size: 13px;
+      padding: 6px;
+    }
+    .comic-cover {
+      width: 40px;
+      height: 55px;
+    }
+    .btn-manage {
+      padding: 5px 10px;
+      font-size: 12px;
+    }
+  }
+  .action-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+</style>
+
+
+<div class="container mt-4 manage-container">
+  <h2 class="manage-title">📚 Quản lý Tất Cả Truyện</h2>
+
+  <table class="manage-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Ảnh bìa</th>
+        <th>Tiêu đề</th>
+        <th>Tác giả</th>
+        <th>Trạng thái</th>
+        <th>Quốc gia</th>
+        <th>Cập nhật</th>
+        <th>Chương mới nhất</th>
+        <th>Hành động</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in comics %}
+      <tr>
+        <td>{{ c.id }}</td>
+        <td>
+          {% if c.cover_url %}
+            <img src="{{ c.cover_url }}" alt="cover" class="comic-cover">
+          {% else %}
+            <span class="no-cover">Không có</span>
+          {% endif %}
+        </td>
+        <td><a href="{{ url_for('comic_detail', slug=c.slug) }}" target="_blank" style="color:#4fc3f7; text-decoration:none;">{{ c.title }}</a></td>
+        <td>{{ c.authors or '-' }}</td>
+        <td>{{ c.status or '-' }}</td>
+        <td>{{ c.country or '-' }}</td>
+        <td>{{ c.updated_at.strftime("%d/%m/%Y %H:%M") if c.updated_at else "-" }}</td>
+        <td>{{ c.latest_chapter or 0 }}</td>
+        
+        <td>
+  <div class="action-group">
+    <form method="post" action="{{ url_for('admin.toggle_comic', id=c.id) }}">
+      {% if c.is_hidden %}
+        <button class="btn-manage btn-show">Hiện</button>
+      {% else %}
+        <button class="btn-manage btn-hide">Ẩn</button>
+      {% endif %}
+    </form>
+
+    <a href="{{ url_for('admin.sua_comic', slug=c.slug) }}" class="btn-manage btn-edit">Sửa</a>
+
+    <form method="post" action="{{ url_for('admin.delete_comic', slug=c.slug) }}" 
+          onsubmit="return confirm('Xóa truyện này?');">
+      <button class="btn-manage btn-delete">🗑 Xóa</button>
+    </form>
+  </div>
+</td>
+
+
+      </tr>
+      {% endfor %}
+      
+    </tbody>
+  </table>
+</div>
+
+
+
+
+
+
+{% endblock %}
+
+

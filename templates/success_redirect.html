@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="2;url={{ next }}">
+  <title>Thành công</title>
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-color: #111;
+      color: #0f0;
+      font-family: Arial, sans-serif;
+      font-size: 24px;
+    }
+    .msg {
+      animation: fade 2s ease-in-out;
+    }
+    @keyframes fade {
+      0% { opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="msg">
+    ✅ Cập nhật thành công!<br>
+    <small>Đang trở về trang chủ...</small>
+  </div>
+</body>
+</html>

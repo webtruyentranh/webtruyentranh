@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Kết quả cho “{{ q }}”</h2>
+<div class="grid">
+  {% for it in results %}
+  <a class="card" href="/truyen/{{ it.slug or it.id }}">
+    <img src="{{ it.cover_url or '/static/img/placeholder.png' }}">
+    <div class="title">{{ it.title }}</div>
+    <div class="meta">Tác giả: {{ it.authors }}</div>
+    <div class="desc">{{ (it.description or '')[:120] }}</div>
+  </a>
+  {% else %}
+  <p>Không tìm thấy kết quả.</p>
+  {% endfor %}
+</div>
+{% endblock %}

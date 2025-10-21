@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name ="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="http://kit.fontawesome.com/54f0cb7e4a.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      referrerpolicy="no-referrer" />
+
+    <title>Truyện sấm sét</title>
+</head>
+<body>
+    <header>
+<!--        <img src="img/hanamichi.png" alt="Hanamichi" class="comic-img"> -->
+        
+        <div class="search-container">
+          <a href="{{ url_for('index') }}" class="logo">
+          <img src ="{{ url_for('static', filename='img/logoset.png') }}" alt="Logo" class="logo">
+          </a>
+        <div class="search-bar">
+  <i class="fas fa-search"></i>
+  <input id="globalSearchInput" type="text" placeholder="Nhập từ khóa tìm kiếm...">
+  <div id="searchDropdown" class="search-dropdown" hidden></div>
+</div>
+
+  <!-- Cụm nút cũ -->
+<!-- cụm nút mở modal đăng nhập/đăng ký -->
+<div id="authButtons">
+  <button class="btn" id="loginBtnOpen">Đăng nhập</button>
+  <button class="btn" id="registerBtnOpen">Đăng ký</button>
+</div>
+
+<!-- khu vực user sau khi đăng nhập -->
+<div id="userArea" class="user-area" style="display:none;">
+
+<!-- Chuông + dropdown thông báo -->
+<div class="notify-wrap">
+  <button id="bellBtn" class="icon-btn" aria-label="Thông báo">
+    <i class="fa-regular fa-bell"></i>
+    <span id="notifyBadge" class="badge" hidden>0</span>
+  </button>
+
+  <div id="notifyPanel" class="notify-panel" hidden>
+    <div class="notify-head">
+      
+      <button id="notifyMarkRead" class="mark-read" type="button">Đánh dấu đã đọc tất cả</button>
+    </div>
+
+    <ul id="notifyList" class="notify-list">
+      <!-- sẽ render động -->
+    </ul>
+
+    <div class="notify-empty" id="notifyEmpty" hidden>Không có thông báo nào</div>
+  </div>
+</div>
+
+
+  <!-- avatar + menu -->
+  <div id="userMenuWrap" class="user-menu">
+    <img id="userAvatar" class="avatar" src="/static/img/default-avatar.png" alt="avatar">
+    <div id="avatarMenu" class="avatar-menu">
+      <div class="menu-header">
+        <img id="menuAvatar" class="avatar sm" src="/static/img/default-avatar.png" alt="">
+        <div class="menu-id">
+          <div id="menuName" class="name">User</div>
+          <div id="menuEmail" class="email">email@example.com</div>
+        </div>
+      </div>
+      <a class="menu-item" href="/profile">
+        <i class="fa-solid fa-user-pen"></i><span>Chỉnh sửa trang cá nhân</span></a>
+      {% if current_role == 'admin' %}
+    <a class="menu-item" href="{{ url_for('admin.add_comic') }}">
+       <i class="fa-solid fa-square-plus"></i><span>Tạo truyện mới</span>
+    </a>
+  
+  {% endif %}
+
+{% if session.get('user_id') %}
+  <a class="menu-item" href="{{ url_for('following_page') }}">
+    <i class="fa-solid fa-bookmark"></i><span>Truyện đang theo dõi</span>
+  </a>
+{% endif %}
+      <a class="menu-item" href="/lich-su">
+        <i class="fa-solid fa-clock-rotate-left"></i><span>Lịch sử đọc truyện</span>
+      </a>
+      <a class="menu-item" href="/liked">
+        <i class="fa-solid fa-heart"></i><span>Truyện đã thích</span>
+
+      </a>
+
+      <a class="menu-item" id="menuLogout" href="#">
+         <i class="fa-solid fa-right-from-bracket"></i><span>Đăng xuất</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+
+<!-- Nút của thanh công cụ -->
+</div>
+    <div class="navbar">
+  <ul>
+    <li><a href="#">Trang Chủ</a></li>
+    <li class="dropdown">
+  <a href="#">Thể loại ▾</a>
+  <div class="dropdown-content mega-menu">
+    {% for g in genres %}
+      <a href="/the-loai/{{ g.slug }}">{{ g.name }}</a>
+    {% endfor %}
+    
+    
+  </div>
+</li>
+
+   <li class="dropdown">
+  <a href="#">Xếp Hạng ▾</a>
+  <div class="dropdown-content sub-menu">
+    <a href="/xep-hang/xem">Top Lượt Xem</a>
+    <a href="/xep-hang/thich">Top Yêu Thích</a>
+    <a href="/xep-hang/theo-doi">Top Theo Dõi</a>
+    <a href="/xep-hang/danh-gia">Top Đánh Giá</a>
+    <a href="/xep-hang/ngay">Top Ngày</a>
+    <a href="/xep-hang/tuan">Top Tuần</a>
+    <a href="/xep-hang/thang">Top Tháng</a>
+    <a href="/xep-hang/tat-ca">Top Tổng Thể</a>
+
+  </div>
+</li>
+
+
+
+    <!-- <li><a href="/con-gai">Con Gái</a></li>
+    <li><a href="/con-trai">Con Trai</a></li> -->
+    <li><a href="/lich-su">Lịch sử</a></li>
+    <li><a href="/following">Theo dõi</a></li>
+    <li><a href="/liked">Yêu thích</a></li>
+    <li><a href="{{ url_for('thaoluan') }}">Thảo luận</a></li>
+    <li><a href="{{ url_for('fanpage') }}">Fanpage</a></li>
+    <li><a href="{{ url_for('request_translate') }}">Yêu cầu dịch truyện</a></li>
+{% if current_role == 'admin' %}
+<li><a href="{{ url_for('admin.manage_all_comics') }}">Quản lý truyện</a></li>
+{% endif %}
+{% if current_role == 'admin' %}
+<li><a href="{{ url_for('admin.manage_genres') }}">Quản lý thể loại</a></li>
+{% endif %}
+
+  </ul>
+</div>
+
+
+
+<h2 class="section-title">🔥 Top 10 truyện mới nhất</h2>
+<div class="comic-row scroll-x">
+  {% for cm in top_comics|default([]) %}
+  <div class="comic-card">
+    <a href="/truyen/{{ cm.slug or cm.id }}">
+      <img src="{{ cm.cover_url or '/static/img/placeholder.png' }}" alt="{{ cm.title }}">
+    </a>
+    <h3><a href="/truyen/{{ cm.slug or cm.id }}">{{ cm.title }}</a></h3>
+    <p>
+  {% if cm.latest_chapter and cm.latest_chapter|int > 0 %}
+    {{ cm.latest_chapter }} chương
+  {% else %}
+    Chưa có chương
+  {% endif %}
+</p>
+
+    <span class="label hot">MỚI</span>
+    <span class="label time">{{ cm.updated_at }}</span>
+  </div>
+  {% endfor %}
+</div>
+
+
+<h2 class="section-title">📚 Danh sách truyện</h2>
+<div class="container">
+  <div class="comic-row2">
+    {% for cm in all_comics|default([]) %}
+    <div class="comic-card">
+      <a href="/truyen/{{ cm.slug or cm.id }}">
+        <img src="{{ cm.cover_url or '/static/img/placeholder.png' }}" alt="{{ cm.title }}">
+      </a>
+      <h3><a href="/truyen/{{ cm.slug or cm.id }}">{{ cm.title }}</a></h3>
+      <p>
+  {% if cm.latest_chapter and cm.latest_chapter|int > 0 %}
+    {{ cm.latest_chapter }} chương
+  {% else %}
+    Chưa có chương
+  {% endif %}
+</p>
+      <span class="label hot">MỚI</span>
+      <span class="label time">{{ cm.updated_at }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+
+<!-- KẾT THÚC: các truyện động -->
+<!-- =============================================== -->
+
+
+<!-- KẾT THÚC: danh sách động -->
+</header>
+
+    </header>
+   <!-- ...existing code... -->
+
+<!-- Popup Đăng ký -->
+<div id="registerModal" class="modal">
+  <div class="modal-content">
+    <span class="close" id="closeRegister">&times;</span>
+    <h2>Đăng ký tài khoản</h2>
+    <form>
+      <input type="text" placeholder="Tên đăng nhập" required><br>
+      <input type="email" placeholder="Email" required><br>
+      <input type="password" placeholder="Mật khẩu" required><br>
+      <button type="submit" class="btn">Đăng ký</button>
+    </form>
+  </div>
+</div>
+
+<!-- Popup Đăng nhập -->
+<div id="loginModal" class="modal">
+  <div class="modal-content">
+    <span class="close" id="closeLogin">&times;</span>
+    <h2>Đăng nhập</h2>
+    <form>
+      <input type="text" placeholder="Tên đăng nhập hoặc Email" required><br>
+      <input type="password" placeholder="Mật khẩu" required><br>
+      <button type="submit" class="btn">Đăng nhập</button>
+    </form>
+  </div>
+</div>
+
+<style>
+.modal {
+  display: none; 
+  position: fixed; 
+  z-index: 1000; 
+  left: 0; top: 0; width: 100%; height: 100%;
+  overflow: auto; background: rgba(0,0,0,0.4);
+}
+.modal-content {
+  background: #fff; margin: 10% auto; padding: 20px;
+  border-radius: 8px; width: 300px; position: relative;
+}
+.close {
+  color: #aaa; position: absolute; right: 10px; top: 10px;
+  font-size: 28px; font-weight: bold; cursor: pointer;
+}
+.modal-content input {
+  width: 90%; margin: 8px 0; padding: 8px;
+  border: 1px solid #ccc; border-radius: 4px;
+}
+.user-menu .menu-item{
+  display:flex; align-items:center; gap:10px;
+  padding:8px 12px; border-radius:8px; color:#e5e7eb; /* text light */
+  text-decoration: none !important;
+}
+.user-menu .menu-item i{
+  width:18px; text-align:center; opacity:.95;
+}
+.user-menu .menu-item:hover{
+  background:#1f2937; color:#fff;
+  text-decoration: none !important;
+}
+.user-menu .menu-header{padding:10px 12px; border-bottom:1px solid #1f2937; margin-bottom:4px;}
+.user-menu .menu-header .avatar.sm{width:32px;height:32px;border-radius:50%;object-fit:cover;margin-right:8px}
+.user-menu .menu-header .name{font-weight:600}
+.user-menu .menu-header .email{font-size:.85rem; opacity:.8}
+.user-menu .fa-user-pen{color:#fbbf24}
+.user-menu .fa-bookmark{color:#38bdf8}
+.user-menu .fa-clock-rotate-left{color:#a78bfa}
+.user-menu .fa-heart{color:#f87171}
+.user-menu .fa-square-plus{color:#34d399}
+.user-menu .fa-right-from-bracket{color:#ffffff}
+
+a,
+a:visited,
+a:hover,
+a:active {
+  text-decoration: none !important;
+}
+/* Khung bọc chuông để định vị dropdown */
+.notify-wrap { position: relative; display: inline-block; }
+
+/* Nút chuông */
+.icon-btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:38px; height:38px; border-radius:999px; border:1px solid #2b2b2b;
+  background:#16181d; color:#e5e7eb; cursor:pointer;
+}
+.icon-btn:hover{ filter:brightness(1.1); }
+
+/* Badge đếm */
+.badge{
+  position:absolute; top:-6px; right:-6px;
+  min-width:18px; height:18px; padding:0 5px;
+  border-radius:999px; background:#ef4444; color:#fff;
+  font-size:12px; line-height:18px; text-align:center;
+}
+
+/* Dropdown panel */
+.notify-panel{
+  position:absolute; right:0; top:46px; width:360px; max-height:60vh;
+  background: rgba(25,27,33,0.95); backdrop-filter: blur(6px);
+  border:1px solid #2b2b2b; border-radius:14px; overflow:hidden;
+  box-shadow:0 18px 50px rgba(0,0,0,.45); z-index:3000;
+}
+.notify-head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 12px; background:#0f1217; border-bottom:1px solid #222;
+}
+.mark-read{
+  background:#23262d; color:#d1d5db; border:none; border-radius:8px;
+  padding:6px 10px; cursor:pointer; font-size:13px;
+}
+.mark-read:hover{ filter:brightness(1.08); }
+
+/* Danh sách */
+.notify-list{ list-style:none; margin:0; padding:0; max-height:50vh; overflow:auto; }
+.notify-item{
+  display:flex; gap:10px; align-items:flex-start; padding:10px 12px;
+  border-bottom:1px solid #1f242d;
+}
+.notify-item:last-child{ border-bottom:none; }
+.notify-item.unread{ background:#121826; }
+.notify-icon{
+  width:30px; height:30px; flex:0 0 auto; border-radius:8px; background:#1f2937;
+  display:flex; align-items:center; justify-content:center; font-size:14px;
+}
+.notify-text{ color:#e5e7eb; font-size:14px; line-height:1.35; }
+.notify-time{ display:block; color:#9aa4b2; font-size:12px; margin-top:2px; }
+
+/* Empty state */
+.notify-empty{ padding:16px; text-align:center; color:#9aa4b2; }
+
+
+
+/* thanh tìm kiếm */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #b5b3b3;
+  border-radius: 25px;
+  padding: 6px 14px;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  margin-left: 40px; /* 👈 thụt vào 40px, có thể chỉnh 30–50px tuỳ ý */
+}
+.search-dropdown{
+  position:absolute; left:40px; right:12px; top:44px;
+  background:#1a1d24; border:1px solid #2b2f3a; border-radius:10px;
+  box-shadow:0 12px 30px rgba(0,0,0,.35); z-index:2500; max-height:50vh; overflow:auto;
+}
+.header-top, 
+.search-container{ 
+  overflow: visible; 
+}
+.search-container .logo {
+  width: 45px;      /* vừa tầm */
+  height: auto;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #1b1b1b;
+  border-radius: 25px;
+  padding: 6px 14px;
+  width: 100%;
+  max-width: 580px;
+}
+.search-bar input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 15px;
+  padding-left: 10px; /* 👈 thêm khoảng cách bên trái */
+}
+.search-item{
+  display:flex; gap:10px; padding:10px 12px; border-bottom:1px solid #242936; color:#e5e7eb;
+}
+.search-item:last-child{ border-bottom:none; }
+.search-item img{ width:40px; height:56px; object-fit:cover; border-radius:6px; flex:0 0 auto; }
+.search-item .meta{ font-size:12px; color:#9aa4b2; margin-top:2px }
+.search-empty{ padding:12px; color:#9aa4b2; }
+
+</style>
+
+<!-- ...existing code... -->
+
+<!-- Popup Thể loại -->
+<div id="categoryModal" class="modal">
+  <div class="modal-content">
+    <span class="close" id="closeCategory">&times;</span>
+    <h2>Thể loại truyện</h2>
+    <ul style="list-style:none;padding:0;">
+      <li>Hành động</li>
+      <li>Phiêu lưu</li>
+      <li>Hài hước</li>
+      <li>Lãng mạn</li>
+      <li>Kinh dị</li>
+      <li>Thể thao</li>
+      <li>Viễn tưởng</li>
+      <li>Trinh thám</li>
+      <!-- Thêm các thể loại khác nếu muốn -->
+    </ul>
+  </div>
+</div>
+<!-- ...existing code... -->
+
+
+
+
+<script>
+
+
+// --- NÚT THỂ LOẠI ---
+document.getElementById('categoryBtn').addEventListener('click', async ()=>{
+  // mở modal thể loại (bạn đã có modal #categoryModal)
+  document.getElementById('categoryModal').style.display = 'block';
+  // gọi API để lấy danh sách thể loại thực tế
+  const res = await fetch('/api/categories');
+  const data = await res.json();
+  if (data.ok) {
+    const ul = document.querySelector('#categoryModal ul');
+    ul.innerHTML = '';
+    data.data.forEach(name=>{
+      const li = document.createElement('li');
+      li.textContent = name;
+      ul.appendChild(li);
+    });
+  }
+});
+
+// --- TÌM KIẾM ---
+const searchInput = document.querySelector('.search-bar input');  // đã có trong HTML của bạn :contentReference[oaicite:3]{index=3}
+searchInput.addEventListener('keydown', async (e)=>{
+  if (e.key === 'Enter') {
+    const q = searchInput.value.trim();
+    const res = await fetch('/api/search?q=' + encodeURIComponent(q));
+    const data = await res.json();
+    if (data.ok) {
+      console.log('Kết quả tìm:', data.data);
+      alert('Tìm thấy: ' + data.data.map(x=>x.title + ' Ch.' + x.chapter).join(', '));
+    }
+  }
+});
+
+// --- VÍ DỤ: LỊCH SỬ / THEO DÕI ---
+async function openHistory(){
+  const res = await fetch('/api/history');
+  const data = await res.json();
+  if (!data.ok) return alert(data.msg || 'Lỗi');
+  console.log('Lịch sử:', data.data);
+  alert('Lịch sử (demo): ' + JSON.stringify(data.data));
+}
+// Bạn có thể gắn: document.querySelector('.btn1-test:nth-child(5)').onclick = openHistory;
+</script>
+<script>
+const authButtons   = document.getElementById('authButtons'); 
+const userArea      = document.getElementById('userArea');
+const bellBtn       = document.getElementById('bellBtn');
+const userMenuWrap  = document.getElementById('userMenuWrap');
+const userAvatar    = document.getElementById('userAvatar');
+const avatarMenu    = document.getElementById('avatarMenu');
+const menuAvatar    = document.getElementById('menuAvatar');
+const menuName      = document.getElementById('menuName');
+const menuEmail     = document.getElementById('menuEmail');
+const menuLogout    = document.getElementById('menuLogout');
+
+/* Render giao diện theo user */
+function renderUser(user){
+  if(user && user.username){
+    authButtons.style.display = 'none';
+    userArea.style.display = 'flex';
+    const avt = user.avatar_url || '/static/img/default-avatar.png';
+    userAvatar.src = avt; 
+    menuAvatar.src = avt;
+    menuName.textContent = user.username;
+    menuEmail.textContent = user.email || '';
+  } else {
+    userArea.style.display = 'none';
+    authButtons.style.display = 'flex';
+    userAvatar.src = '/static/img/default-avatar.png';
+  }
+}
+
+/* Lấy trạng thái khi tải trang */
+(async ()=>{
+  const res = await fetch('/api/me');
+  const data = await res.json();
+  renderUser(data.user);
+})();
+
+/* Đăng ký */
+document.querySelector('#registerModal form').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const [uEl, eEl, pEl] = e.target.querySelectorAll('input');
+  const body = { username:uEl.value, email:eEl.value, password:pEl.value };
+  const res = await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const data = await res.json();
+  alert(data.msg);
+  if(data.ok){
+    renderUser(data.user);
+    document.getElementById('loginModal').style.display = 'none'; //
+    registerModal.style.display = 'none';
+  }
+});
+
+/* Đăng nhập */
+document.querySelector('#loginModal form').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const [identifierEl, passEl] = e.target.querySelectorAll('input');
+  const body = { identifier: identifierEl.value, password: passEl.value };
+  const res = await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const data = await res.json();
+  alert(data.msg);
+  if(data.ok){
+    renderUser(data.user);
+    loginModal.style.display = 'none';
+    location.reload(); // reload để cập nhật giao diện admin nếu có
+  }
+});
+
+/* Logout */
+menuLogout.addEventListener('click', async (e)=>{
+  e.preventDefault();
+  const res = await fetch('/api/logout',{method:'POST'});
+  await res.json();
+  renderUser(null);
+});
+
+/* Chuông thông báo */
+bellBtn?.addEventListener('click', (e)=>{
+  e.stopPropagation();
+  userMenuWrap.classList.remove('open');
+});
+
+/* Avatar toggle menu */
+userAvatar?.addEventListener('click', (e)=>{
+  e.stopPropagation();
+  userMenuWrap.classList.toggle('open');
+});
+
+/* Click ngoài để đóng menu */
+document.addEventListener('click', ()=>{
+/* ===== Mở/đóng modal đăng nhập/đăng ký ===== */
+const loginBtnOpen    = document.getElementById('loginBtnOpen');
+const registerBtnOpen = document.getElementById('registerBtnOpen');
+
+const loginModal    = document.getElementById('loginModal');
+const registerModal = document.getElementById('registerModal');
+const closeButtons  = document.querySelectorAll('.close');
+
+loginBtnOpen?.addEventListener('click', ()=>{
+  loginModal.style.display = 'block';
+});
+
+registerBtnOpen?.addEventListener('click', ()=>{
+  registerModal.style.display = 'block';
+});
+
+/* nút X trong modal */
+closeButtons.forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    btn.parentElement.parentElement.style.display = 'none';
+  });
+});
+
+/* click ngoài modal để đóng */
+window.addEventListener('click', (e)=>{
+  if (e.target === loginModal) loginModal.style.display = 'none';
+  if (e.target === registerModal) registerModal.style.display = 'none';
+});
+
+  userMenuWrap.classList.remove('open');
+});
+
+// // lịch sử
+async function openHistory(){
+  const res = await fetch('/api/history');
+  const data = await res.json();
+  if (!data.ok) return alert(data.msg || 'Lỗi');
+
+  // Hiển thị lịch sử
+  let html = "<h2>Lịch sử đọc truyện</h2><ul>";
+  data.data.forEach(item=>{
+    html += `<li>
+      <img src="${item.cover_url}" width="80">
+      <a href="/truyen/${item.id}">${item.title}</a>
+      - ${new Date(item.viewed_at).toLocaleString()}
+    </li>`;
+  });
+  html += "</ul>";
+  document.body.innerHTML = html;
+}
+
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const bell   = document.getElementById('bellBtn');
+  const panel  = document.getElementById('notifyPanel');
+  const listEl = document.getElementById('notifyList');
+  const emptyEl= document.getElementById('notifyEmpty');
+  const badge  = document.getElementById('notifyBadge');
+  const markBtn= document.getElementById('notifyMarkRead');
+refreshUnreadBadge(); // gọi khi load trang
+  // Render 1 item
+  function renderItem(n){
+    const li = document.createElement('li');
+    li.className = 'notify-item' + ((n.is_read ? '' : ' unread'));
+    li.innerHTML = `
+      <div class="notify-icon"><i class="fa-regular fa-bell"></i></div>
+      <div class="notify-text">
+        ${n.message}
+        <span class="notify-time">${n.created_at ? new Date(n.created_at).toLocaleString() : ''}</span>
+      </div>
+    `;
+    return li;
+  }
+
+  async function loadList(){
+    listEl.innerHTML = '';
+    emptyEl.hidden = true;
+    try{
+      const res = await fetch('/notifications', {credentials:'same-origin'});
+      const data = await res.json();
+      if(!data || data.length === 0){
+        emptyEl.hidden = false;
+        updateBadge(0);
+        return;
+      }
+      let unread = 0;
+      data.forEach(n=>{
+        if(!n.is_read) unread++;
+        listEl.appendChild(renderItem(n));
+      });
+      updateBadge(unread);
+    }catch(e){
+      emptyEl.hidden = false;
+      emptyEl.textContent = 'Lỗi tải thông báo';
+    }
+  }
+
+  function updateBadge(num){
+    if(num > 0){
+      badge.textContent = (num > 99 ? '99+' : num);
+      badge.hidden = false;
+    }else{
+      badge.hidden = true;
+    }
+  }
+
+  // Toggle panel
+  bell?.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    if(panel.hasAttribute('hidden')){
+      panel.removeAttribute('hidden');
+      loadList();
+    }else{
+      panel.setAttribute('hidden','');
+    }
+  });
+
+  // Click ngoài để đóng
+  document.addEventListener('click', (e)=>{
+    if(!panel.hasAttribute('hidden')){
+      const inside = panel.contains(e.target) || e.target === bell;
+      if(!inside) panel.setAttribute('hidden','');
+    }
+  });
+
+  // Mark all read
+// Mark all read
+markBtn?.addEventListener('click', async ()=>{
+  try{
+    const res = await fetch('/notifications/mark-read', {method:'POST'});
+    if (res.ok) {
+      updateBadge(0);            // 🔥 ẩn số ngay
+      // panel.setAttribute('hidden',''); // nếu muốn đóng dropdown luôn
+      loadList();                // cập nhật lại danh sách
+    }
+  }catch(e){
+    console.error('Lỗi mark-read:', e);
+  }
+});
+
+});
+function updateBadge(num){
+  const badge = document.getElementById('notifyBadge');
+  if (!badge) return;
+  if (num > 0){
+    badge.textContent = num > 99 ? '99+' : num;
+    badge.hidden = false;
+  } else {
+    badge.hidden = true;
+  }
+}
+
+async function refreshUnreadBadge(){
+  try{
+    const r = await fetch('/notifications/unread-count', {credentials:'same-origin'});
+    const j = await r.json();
+    updateBadge(j.count || 0);
+  }catch{}
+}
+</script>
+
+<script>
+(function(){
+  const input = document.getElementById('globalSearchInput');
+  const box   = document.getElementById('searchDropdown');
+
+  let t=null;
+  function debounce(fn, ms=300){
+    return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); };
+  }
+
+  function closeBox(){ box.setAttribute('hidden',''); }
+  function openBox(){ box.removeAttribute('hidden'); }
+
+  function render(items){
+    if(!items || items.length===0){
+      box.innerHTML = '<div class="search-empty">Không tìm thấy kết quả</div>';
+      return;
+    }
+    box.innerHTML = items.map(it=>`
+      <a class="search-item" href="/truyen/${it.slug || it.id}">
+        <img src="${it.cover_url || '/static/img/placeholder.png'}" alt="">
+        <div>
+          <div style="font-weight:600">${it.title || ''}</div>
+          <div class="meta">
+            ${it.authors ? ('Tác giả: ' + it.authors) : ''}
+            ${it.description ? (' · ' + (it.description || '').slice(0,60)) : ''}
+          </div>
+        </div>
+      </a>
+    `).join('');
+  }
+
+  const doSearch = debounce(async ()=>{
+    const q = (input.value || '').trim();
+    if(!q){ closeBox(); return; }
+    try{
+      const res = await fetch('/api/search?q=' + encodeURIComponent(q));
+      const data = await res.json();
+      render(data.ok ? data.data : []);
+      openBox();
+    }catch(e){
+      box.innerHTML = '<div class="search-empty">Lỗi tìm kiếm</div>';
+      openBox();
+    }
+  }, 250);
+
+  input.addEventListener('input', doSearch);
+
+  // Enter -> đi tới trang kết quả đầy đủ (nếu bạn muốn làm trang riêng)
+  input.addEventListener('keydown', (e)=>{
+    if(e.key==='Enter'){
+      const q = (input.value||'').trim();
+      if(q) window.location.href = '/tim-truyen?q=' + encodeURIComponent(q);
+    }
+  });
+
+  // Đóng dropdown khi click ra ngoài
+  document.addEventListener('click', (e)=>{
+    const wrap = document.querySelector('.search-bar');
+    if(!wrap.contains(e.target)) closeBox();
+  });
+})();
+</script>
+<script>
+function openAddGenreModal() {
+  document.getElementById('addGenreModal').style.display = 'flex';
+}
+function closeAddGenreModal() {
+  document.getElementById('addGenreModal').style.display = 'none';
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const nameInput = document.getElementById("name");
+  const slugInput = document.getElementById("slug");
+
+  if (nameInput && slugInput) {
+    nameInput.addEventListener("input", () => {
+      const slug = nameInput.value
+        .toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // bỏ dấu tiếng Việt
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      slugInput.value = slug;
+    });
+  }
+});
+</script>
+
+
+</body>
+</html>

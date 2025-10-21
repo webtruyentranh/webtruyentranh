@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+{% block title %}Thêm truyện mới{% endblock %}
+{% block content %}
+
+<style>
+.genre-select{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(150px, 1fr)); /* luôn 2 cột */
+  gap: 8px 12px;          /* hàng x cột */
+  margin-top: 8px;
+  align-items: start;
+}
+
+.genre-chip{
+  --chip-bg: #0f141a;
+  --chip-border: #243041;
+  --chip-hover: #19212b;
+  --chip-active: #0b7cff;
+  --chip-text: #dfe7f0;
+  --chip-text-active: #ffffff;
+
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;          /* thu nhỏ */
+  border-radius: 999px;
+  background: var(--chip-bg);
+  border: 1px solid var(--chip-border);
+  transition: background .15s ease, border-color .15s ease, box-shadow .15s ease;
+  user-select: none;
+}
+
+.genre-chip:hover{
+  background: var(--chip-hover);
+  border-color: #2f3d53;
+}
+
+.genre-chip:has(input:focus-visible){
+  outline: 2px solid var(--chip-active);
+  outline-offset: 2px;
+}
+
+/* Ẩn checkbox gốc nhưng vẫn truy cập bàn phím/đọc màn hình */
+.genre-chip input{
+  appearance: none;
+  -webkit-appearance: none;
+  width: 0; height: 0;
+  position: absolute; left: -9999px;
+}
+
+/* “dot” nhỏ để gợi ý có trạng thái */
+.genre-chip::before{
+  content: "";
+  width: 10px; height: 10px;
+  border: 2px solid var(--chip-border);
+  border-radius: 50%;
+  display: inline-block;
+  transition: background .15s ease, border-color .15s ease;
+}
+
+/* Khi được chọn */
+.genre-chip input:checked + .chip-text{
+  color: var(--chip-text-active);
+  font-weight: 600;
+}
+
+.genre-chip:has(input:checked){
+  background: color-mix(in oklab, var(--chip-active) 16%, #0b0f14);
+  border-color: var(--chip-active);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--chip-active) 20%, transparent);
+}
+
+.genre-chip:has(input:checked)::before{
+  background: var(--chip-active);
+  border-color: var(--chip-active);
+}
+
+/* chữ trong chip */
+.chip-text{
+  color: var(--chip-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* hint nhỏ bên dưới */
+.hint{
+  color: #93a1b3;
+  display: inline-block;
+  margin-top: 6px;
+}
+.genres-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 10px 14px;               /* hàng x cột */
+  margin-top: .25rem;
+}
+</style>
+
+
+<div class="admin-wrap">
+  <div class="admin-card">
+    <div class="admin-header">
+      <div>
+        <h2 class="admin-title"> Thêm truyện mới</h2>
+      </div>
+      <a href="/" class="btn ghost">← Về trang chủ</a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="stack">
+          {% for cat, msg in messages %}
+            <div class="alert {{ 'ok' if cat=='success' else 'err' }}">{{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" enctype="multipart/form-data" class="form-grid">
+      <!-- left -->
+      <div class="col">
+        <label class="lab">Tên truyện <span class="req">*</span></label>
+        <input class="inp" type="text" name="title" id="title" placeholder="VD: One Piece" required>
+
+        <label class="lab">Slug (URL)</label>
+        <input class="inp" type="text" name="slug" id="slug" placeholder="vd: one-piece">
+
+        <label class="lab">Mô tả</label>
+        <textarea class="inp" name="description" rows="5" placeholder="Tóm tắt ngắn..."></textarea>
+
+        <div class="row2">
+          <div>
+            <label class="lab">Tác giả</label>
+            <input class="inp" type="text" name="authors" placeholder="Eiichiro Oda">
+          </div>
+          <div>
+            <label class="lab">Quốc gia</label>
+            <input class="inp" type="text" name="country" placeholder="Nhật Bản">
+          </div>
+        </div>
+
+        <div class="row2">
+          
+          <div>
+            <label class="lab">Trạng thái</label>
+            <select class="inp" name="status">
+              <option>Đang cập nhật</option>
+              <option>Hoàn thành</option>
+            </select>
+          </div>
+          <!-- Thể loại -->
+<!-- Thể loại -->
+<div class="form-group">
+  <label class="form-label">Thể loại</label>
+
+  <div class="genre-select">
+    {% for g in genres %}
+      <label class="genre-chip">
+        <input type="checkbox" name="genre_ids" value="{{ g.id }}">
+        <span class="chip-text">{{ g.name }}</span>
+      </label>
+    {% endfor %}
+  </div>
+
+  <small class="hint">Bạn có thể chọn nhiều thể loại</small>
+</div>
+
+
+        </div>
+      </div>
+      
+      <!-- right -->
+      <div class="col">
+        <label class="lab">Ảnh bìa</label>
+<div class="cover-box">
+  <div class="cover-preview">
+    <img id="coverPreview" src="/static/img/placeholder.png" alt="Preview">
+  </div>
+
+  <div class="cover-actions">
+    <label class="btn-upload">
+      <input id="coverFile" type="file" name="cover_url" accept="image/*" hidden>
+      Chọn tệp từ máy
+    </label>
+
+    <div class="or">hoặc</div>
+
+    <select id="coverChoice" name="cover_choice" class="select-exist">
+      <option value="">— Chọn ảnh sẵn trong static/img —</option>
+      {% for fname in images %}
+        <option value="{{ url_for('static', filename='img/' ~ fname) }}">{{ fname }}</option>
+      {% endfor %}
+    </select>
+
+    <ul class="hint">
+      <li>Tỉ lệ gợi ý: 3:4 (600×800px)</li>
+      <li>Dung lượng ≤ 5MB</li>
+    </ul>
+  </div>
+</div>
+
+
+
+        
+
+        <div class="chapter-info">
+          
+  <label class="lab">Tên chương đầu tiên</label>
+  <input type="text" name="chapter1_title" placeholder="VD: Ra khơi!" class="chapter-input">
+
+  <label class="lab">Ảnh nội dung (Chương 1)</label>
+  <input type="file" name="chapter1_pages" accept="image/*" multiple class="chapter-file">
+  <small class="note">Chọn nhiều ảnh (thứ tự 1 → n)</small>
+</div>
+
+      </div>
+<!-- Thêm ngay dưới khu Ảnh bìa -->
+
+
+
+
+      <div class="actions">
+        <button class="btn primary" type="submit">➕ Thêm truyện</button>
+        <button class="btn ghost" type="reset" id="btnReset">Làm lại</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // auto-slug từ title
+  const titleEl = document.getElementById('title');
+  const slugEl  = document.getElementById('slug');
+  titleEl.addEventListener('input', ()=>{
+    if (slugEl.value.trim() === '') {
+      slugEl.value = titleEl.value
+        .toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g,'')  // bỏ dấu
+        .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+    }
+  });
+
+  // drag & drop + preview
+  const dz = document.getElementById('dropzone');
+  const preview = document.getElementById('preview');
+  const dzHint = document.getElementById('dzHint');
+
+  ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('drag');}));
+  ['dragleave','drop'].forEach(ev => dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('drag');}));
+  dz.addEventListener('drop', e=>{
+    const f = e.dataTransfer.files?.[0];
+    if (f) { fileInput.files = e.dataTransfer.files; showPreview(f); }
+  });
+  fileInput.addEventListener('change', e=>{
+    const f = e.target.files?.[0];
+    if (f) showPreview(f);
+  });
+
+  function showPreview(file){
+    const url = URL.createObjectURL(file);
+    preview.src = url;
+    preview.style.display = 'block';
+    dzHint.style.display = 'none';
+  }
+
+  document.getElementById('btnReset').addEventListener('click', ()=>{
+    preview.src = ''; preview.style.display = 'none'; dzHint.style.display = 'grid';
+  });
+
+
+
+
+  
+</script>
+<script>
+  const fileInput   = document.getElementById('coverFile');
+  const selectInput = document.getElementById('coverChoice');
+  const previewImg  = document.getElementById('coverPreview');
+
+  // Chọn file từ máy -> xem trước
+  fileInput?.addEventListener('change', (e) => {
+    const f = e.target.files?.[0];
+    if (f) {
+      previewImg.src = URL.createObjectURL(f);
+      if (selectInput) selectInput.value = ""; // bỏ chọn ảnh sẵn
+    }
+  });
+
+  // Chọn ảnh sẵn -> xem trước, đồng thời clear file
+  selectInput?.addEventListener('change', (e) => {
+    const url = e.target.value;
+    if (url) {
+      previewImg.src = url;
+      if (fileInput) fileInput.value = ""; // bỏ file upload
+    }
+  });
+</script>
+
+{% endblock %}

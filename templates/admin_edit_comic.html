@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Chỉnh sửa truyện{% endblock %}
+
+{% block content %}
+<style>
+.edit-container {
+  background: #1b1b1b;
+  color: #fff;
+  max-width: 480px;
+  margin: 60px auto;
+  padding: 30px 35px;
+  border-radius: 16px;
+  box-shadow: 0 0 12px rgba(255,255,255,0.1);
+  text-align: center;
+}
+
+.edit-container h2 {
+  color: #4fc3f7;
+  font-size: 22px;
+  margin-bottom: 25px;
+}
+
+.edit-container label {
+  display: block;
+  text-align: left;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: #4fc3f7;
+}
+
+.edit-container input[type="text"],
+.edit-container input[type="file"] {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #444;
+  background: #2a2a2a;
+  color: #fff;
+  font-size: 14px;
+}
+
+.preview-box {
+  margin-top: 10px;
+  text-align: center;
+}
+.preview-box img {
+  width: 120px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 10px;
+  box-shadow: 0 0 6px rgba(255,255,255,0.3);
+}
+
+.btn-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 25px;
+}
+
+.btn-back {
+  background: #616161;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: 0.25s;
+}
+.btn-back:hover {
+  background: #757575;
+}
+
+.btn-save {
+  background: linear-gradient(135deg, #0288d1, #42a5f5);
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.btn-save:hover {
+  background: linear-gradient(135deg, #42a5f5, #64b5f6);
+  transform: translateY(-2px);
+}
+</style>
+
+<div class="edit-container">
+  <h2>✏️ Chỉnh sửa truyện</h2>
+  <form method="POST" enctype="multipart/form-data">
+    <label>Tên truyện</label>
+    <input type="text" name="title" value="{{ comic.title }}" required>
+
+    <label>Tác giả</label>
+    <input type="text" name="authors" value="{{ comic.authors or '' }}">
+
+    <label>Trạng thái</label>
+    <input type="text" name="status" value="{{ comic.status or '' }}">
+
+    <label>Quốc gia</label>
+    <input type="text" name="country" value="{{ comic.country or '' }}">
+
+    <!-- ✅ Thêm phần đổi ảnh bìa -->
+    <label>Ảnh bìa mới</label>
+    <input type="file" name="cover_url" accept="image/*" onchange="previewImage(event)">
+    
+    <div class="preview-box">
+      {% if comic.cover_url %}
+        <p>Ảnh hiện tại:</p>
+        <img id="preview" src="{{ comic.cover_url }}" alt="Preview">
+      {% else %}
+        <p><i>Chưa có ảnh bìa</i></p>
+        <img id="preview" style="display:none;">
+      {% endif %}
+    </div>
+
+    <div class="btn-row">
+      <a href="{{ url_for('admin.manage_all_comics') }}" class="btn-back">← Quay lại</a>
+      <button type="submit" class="btn-save">💾 Lưu thay đổi</button>
+    </div>
+  </form>
+</div>
+
+<script>
+function previewImage(event) {
+  const img = document.getElementById('preview');
+  img.src = URL.createObjectURL(event.target.files[0]);
+  img.style.display = 'inline';
+}
+</script>
+
+{% endblock %}

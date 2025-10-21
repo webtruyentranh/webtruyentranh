@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Truyện đã thích{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h2 class="page-title">Truyện đã thích</h2>
+
+  {% if comics|length == 0 %}
+    <div class="empty">Bạn chưa thích truyện nào.</div>
+  {% else %}
+    <div class="grid">
+      {% for c in comics %}
+        <a class="card" href="{{ url_for('comic_detail', slug=c.slug) }}">
+          <img src="{{ c.cover_url or '/static/img/no-cover.png' }}" alt="{{ c.title }}">
+          <div class="card-title">{{ c.title }}</div>
+          <div class="card-meta">
+            {{ c.country or '—' }} · {{ c.status or 'Đang cập nhật' }}
+          </div>
+          <button class="unlike" data-slug="{{ c.slug }}">Bỏ thích</button>
+        </a>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+
+<style>
+.container{max-width:1000px;margin:24px auto}
+.page-title{color:#e2e8f0;margin:0 0 14px}
+.empty{padding:18px;border:1px solid #1e293b;border-radius:12px;background:#0b1220;color:#94a3b8}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+.card{display:block;background:#0f172a;border:1px solid #1e293b;border-radius:12px;overflow:hidden}
+.card img{width:100%;aspect-ratio:3/4;object-fit:cover}
+.card-title{padding:10px 12px;color:#e5edf7;font-weight:600}
+.card-meta{padding:0 12px 12px;color:#94a3b8;font-size:13px}
+.unlike{display:block;width: calc(100% - 24px);margin: 0 12px 12px;padding: 10px 12px;background:#2563eb;border:none;
+  border-radius:8px;color:#fff;font-weight:600;cursor:pointer;text-align:center;transition:background .15s ease, transform .02s ease;}
+.unlike:hover{background:#1e40af;}
+.unlike:active{transform:translateY(1px);}
+a,
+a:visited,
+a:hover,
+a:active {
+  text-decoration: none !important;
+}
+
+</style>
+
+<script>
+document.querySelectorAll('.unlike').forEach(btn=>{
+  btn.addEventListener('click', async (e)=>{
+    e.preventDefault(); e.stopPropagation();
+    const slug = btn.dataset.slug;
+    const res = await fetch(`/api/like/${slug}/toggle`, { method: 'POST' });
+    if(res.ok){
+      // bỏ thích xong thì ẩn card khỏi danh sách
+      btn.closest('.card').remove();
+      if(document.querySelectorAll('.card').length === 0){
+        location.reload(); // hiện khung trống
+      }
+    }
+  });
+});
+</script>
+{% endblock %}

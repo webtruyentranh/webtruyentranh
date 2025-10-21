@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Lịch sử đọc truyện{% endblock %}
+{% block content %}
+
+<section class="history-section">
+  <h2 class="history-title">🚩 Lịch Sử Đọc Truyện</h2>
+  <div id="grid" class="history-grid"></div>
+  <p id="empty" class="history-empty" style="display:none;">Chưa có truyện nào trong lịch sử.</p>
+</section>
+
+<script>
+function timeAgo(iso){
+  const t = new Date(iso);
+  if (isNaN(t.getTime())) return "";
+  const diff = Math.floor((Date.now() - t.getTime())/1000);
+  const m = Math.floor(diff/60), h = Math.floor(m/60), d = Math.floor(h/24);
+  if (diff < 60) return `${diff} Giây Trước`;
+  if (m < 60)    return `${m} Phút Trước`;
+  if (h < 24)    return `${h} Giờ Trước`;
+  return `${d} Ngày Trước`;
+}
+
+async function loadHistory(){
+  const res  = await fetch('/api/history');
+  const data = await res.json();
+  const grid  = document.getElementById('grid');
+  const empty = document.getElementById('empty');
+  grid.innerHTML = '';
+
+  if (!data.ok || !data.data.length){ empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  data.data.forEach(item=>{
+    const id    = item.id;
+    const title = item.title || 'Truyện';
+    const cover = item.cover_url || '/static/img/placeholder.jpg';
+    const time  = item.viewed_at ? timeAgo(item.viewed_at) : '';
+
+    const el = document.createElement('div');
+    el.className = 'history-card';
+    el.innerHTML = `
+      <span class="badge-time">${time}</span>
+      <a href="/truyen/${id}">
+        <img class="thumb" src="${cover}" alt="${title}">
+      </a>
+      <div class="title">${title}</div>
+      <a class="btn-read" href="/doc/${item.slug}/${item.last_chapter || 1}">Đọc tiếp</a>
+
+    `;
+    grid.appendChild(el);
+  });
+}
+loadHistory();
+</script>
+
+<style>
+.history-section{max-width:1100px;margin:24px auto;padding:0 16px}
+.history-title{margin:8px 0 18px;font-size:22px;color:#fff}
+.history-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:22px}
+.history-card{position:relative;background:#161b22;border:1px solid #30363d;
+              border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.history-card .thumb{width:100%;aspect-ratio:3/4;object-fit:cover;display:block}
+.history-card .title{padding:10px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e6edf3}
+.badge-time{position:absolute;left:10px;top:10px;font-size:12px;background:#1f6feb;
+            color:#fff;padding:4px 6px;border-radius:8px}
+.btn-read{display:block;margin:8px 12px 12px;background:#238636;color:#fff;
+          text-align:center;padding:6px;border-radius:6px;text-decoration:none}
+.history-empty{color:#9ba3af;margin-top:10px;text-align:center}
+</style>
+
+{% endblock %}

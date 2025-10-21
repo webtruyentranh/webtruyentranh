@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Yêu cầu dịch truyện{% endblock %}
+
+{% block content %}
+<style>
+  /* ===== Dark themed + centered form ===== */
+  .form-dark, .form-dark h2, .form-dark label { color:#fff; }
+
+  /* Canh giữa tiêu đề + form với cùng bề rộng */
+  .form-dark .page-title,
+  .form-dark form{
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  /* Flash message */
+  .form-dark .flash { margin-bottom:10px; padding:10px 12px; border-radius:10px; }
+  .form-dark .flash.success { background: rgba(16,185,129,.12); color:#34d399; }
+  .form-dark .flash.error   { background: rgba(239,68,68,.12); color:#f87171; }
+
+  /* Inputs */
+  .form-dark input,
+  .form-dark textarea,
+  .form-dark select{
+    width:100%;
+    padding:10px;
+    border-radius:10px;
+    border:1px solid #2b2f3a;
+    background:#111826;
+    color:#fff;
+    outline:none;
+  }
+  .form-dark input::placeholder,
+  .form-dark textarea::placeholder{ color:#cbd5e1; opacity:1; }
+  .form-dark select option{ color:#e5e7eb; background:#111826; }
+
+  /* Layout lưới 2 cột */
+  .form-dark .grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .form-dark .full{ grid-column:1/-1; }
+
+  /* Hành động */
+  .form-dark .actions{ margin-top:12px; text-align:right; }
+  .form-dark .btn-submit{
+    background:#2563eb; color:#fff; border:none; padding:10px 14px;
+    border-radius:10px; font-weight:700; cursor:pointer;
+  }
+
+  /* Responsive */
+  @media (max-width: 820px){
+    .form-dark .grid{ grid-template-columns:1fr; }
+    .form-dark .page-title, .form-dark form{ max-width:100%; padding:0 12px; }
+  }
+</style>
+
+<div class="wrap form-dark">
+  <h2 class="page-title" style="font-weight:800; font-size:22px; margin:12px 0 16px;">📩 Yêu cầu dịch truyện</h2>
+
+  {# Flash messages #}
+  {% set msgs = get_flashed_messages(with_categories=True) %}
+  {% if msgs %}
+    <div class="page-title">
+      {% for cat, m in msgs %}
+        <div class="flash {{ 'success' if cat=='success' else 'error' }}">{{ m }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <form method="post">
+    <div class="grid">
+      <div>
+        <label>Tên của bạn *</label>
+        <input name="name" value="{{ form.name or '' }}" required placeholder="">
+      </div>
+      <div>
+        <label>Email liên hệ *</label>
+        <input name="email" type="email" value="{{ form.email or '' }}" required placeholder="">
+      </div>
+
+      <div>
+        <label>Truyện muốn dịch *</label>
+        <input name="comic_title" value="{{ form.comic_title or '' }}" required placeholder="">
+      </div>
+      <div>
+        <label>Chương muốn dịch *</label>
+        <input name="chapter" value="{{ form.chapter or '' }}" required placeholder="">
+      </div>
+
+      <div class="full">
+        <label>Ngôn ngữ muốn dịch sang *</label>
+        <select name="lang_to" required>
+          <option value="" disabled {{ 'selected' if not form.lang_to }}>-- Chọn --</option>
+          <option {{ 'selected' if form.lang_to=='Tiếng Việt' }}>Tiếng Việt</option>
+          <option {{ 'selected' if form.lang_to=='English' }}>English</option>
+          <option {{ 'selected' if form.lang_to=='日本語' }}>日本語 (Japanese)</option>
+          <option {{ 'selected' if form.lang_to=='한국어' }}>한국어 (Korean)</option>
+          <option {{ 'selected' if form.lang_to=='中文' }}>中文 (Chinese)</option>
+          <option {{ 'selected' if form.lang_to=='Français' }}>Français</option>
+          <option {{ 'selected' if form.lang_to=='Deutsch' }}>Deutsch</option>
+        </select>
+      </div>
+
+      <div class="full">
+        <label>Ghi chú (tuỳ chọn)</label>
+        <textarea name="note" rows="3" placeholder="Mô tả thêm yêu cầu (nếu có)">{{ form.note or '' }}</textarea>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-submit">Gửi yêu cầu</button>
+    </div>
+  </form>
+</div>
+
+{# Sau khi submit thành công, cập nhật badge chuông nếu có #}
+{% if msgs %}
+<script>
+  if (typeof refreshUnreadBadge === 'function') {
+    refreshUnreadBadge();
+  }
+</script>
+{% endif %}
+{% endblock %}

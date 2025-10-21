@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>{{ comic.title }} - {{ chapter.title }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    body {
+      background:#212121; color:#fff; margin:0; text-align:center;
+      font-family: system-ui, Arial, sans-serif;
+      padding-bottom:64px; /* chừa chỗ cho thanh đáy */
+    }
+    h2 { margin:16px 0; font-weight:700; }
+    .comic-page img {
+      max-width:70%; height:auto; display:block; margin:20px auto;
+      box-shadow:0 0 15px rgba(255,255,255,.2);
+    }
+    /* Thanh điều khiển đáy */
+    .rtbar {
+      position:fixed; left:0; right:0; bottom:0;
+      display:flex; justify-content:center; gap:8px;
+      padding:8px;
+      background:#111; border-top:1px solid #222;
+      z-index:998;
+    }
+    .rt-btn {
+      width:40px; height:40px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      background:#2f2f2f; color:#fff; text-decoration:none;
+      border:none; cursor:pointer;
+      font-size:18px;
+      transition:transform .2s;
+    }
+    .rt-btn:hover { transform:scale(1.1); }
+    .rt-btn.dis { opacity:.35; pointer-events:none; }
+    .rt-sel {
+      background:#1b1b1b; color:#fff;
+      border:1px solid #333; border-radius:8px;
+      padding:8px 10px; min-width:140px;
+    }
+    @media (max-width:560px){
+      .comic-page img { max-width:92%; }
+      .rt-sel { min-width:120px; }
+    }
+  </style>
+</head>
+<body>
+
+  <h2>{{ comic.title }} - {{ chapter.title }}</h2>
+
+  <div class="comic-page">
+    {% for p in pages %}
+      <img src="{{ p.image_url }}" alt="Trang {{ p.page_number }}">
+    {% endfor %}
+  </div>
+
+  <!-- Thanh điều khiển đáy -->
+  <div class="rtbar">
+    <!-- Trang chủ -->
+    <a class="rt-btn" href="/" title="Trang chủ"><i class="fa-solid fa-house"></i></a>
+
+
+    {% set cur = chapter.number %}
+    {% set nums = chapters|map(attribute='number')|list if chapters is defined else [cur] %}
+    {% set minc = nums|min %}{% set maxc = nums|max %}
+
+    <!-- Chương trước -->
+    <a class="rt-btn {% if cur-1 < minc %}dis{% endif %}"
+       href="{% if cur-1 >= minc %}/doc/{{ comic.slug }}/{{ cur-1 }}{% else %}#{% endif %}"
+       title="Chương trước">◀</a>
+
+    <!-- Dropdown chọn chương -->
+    <select id="chSel" class="rt-sel" onchange="goChapter()">
+      {% for ch in chapters|sort(attribute='number') %}
+        <option value="{{ ch.number }}" {% if ch.number == cur %}selected{% endif %}>
+          Chương {{ ch.number }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <!-- Chương sau -->
+    <a class="rt-btn {% if cur+1 > maxc %}dis{% endif %}"
+       href="{% if cur+1 <= maxc %}/doc/{{ comic.slug }}/{{ cur+1 }}{% else %}#{% endif %}"
+       title="Chương sau">▶</a>
+
+    <!-- Nút lên đầu -->
+    <button class="rt-btn" onclick="toTop()" title="Lên đầu trang">⬆</button>
+  </div>
+
+  <script>
+    function toTop(){
+      document.body.scrollTop = 0;
+      document.documentElement.scrollTop = 0;
+    }
+    function goChapter(){
+      const n = document.getElementById('chSel').value;
+      location.href = '/doc/{{ comic.slug }}/' + n;
+    }
+  </script>
+
+</body>
+</html>

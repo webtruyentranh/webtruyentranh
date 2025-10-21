@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="ranking-page">
+  <h2 class="page-title">{{ title }}</h2>
+
+  
+
+  <div class="comic-grid">
+    {% for c in comics %}
+    <div class="comic-card">
+      <a href="/truyen/{{ c.slug }}">
+        <img src="{{ c.cover_url or '/static/img/placeholder.png' }}" alt="{{ c.title }}">
+        <span class="rank-badge">#{{ loop.index }}</span>
+      </a>
+      <div class="comic-info">
+        <h3>{{ c.title }}</h3>
+        <p class="stat">
+  {% if type == 'xem' %}
+    👁️ {{ c.view_count or 0 }} lượt xem
+  {% elif type == 'thich' %}
+    ❤️ {{ c.like_count or 0 }} lượt thích
+  {% elif type == 'theo-doi' %}
+    🔖 {{ c.follow_count or 0 }} lượt theo dõi
+  {% elif type == 'danh-gia' %}
+    ⭐ {{ "%.1f"|format(c.avg_rating or 0) }} điểm đánh giá
+  {% endif %}
+</p>
+
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<style>
+.ranking-page {
+  padding: 20px 50px;
+  color: #fff;
+}
+.page-title {
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-bottom: 25px;
+  color: #ffcb00;
+}
+.ranking-tabs {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.tab {
+  display: inline-block;
+  margin: 0 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  text-decoration: none;
+  background: #1f1f1f;
+  color: #ccc;
+}
+.tab.active {
+  background: #3498db;
+  color: #fff;
+}
+.comic-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); /* 👈 thu nhỏ card */
+  gap: 15px; /* 👈 khoảng cách giữa các card, có thể giảm còn 10px nếu muốn sát hơn */
+  justify-items: center;
+  align-items: start;
+  margin-top: 20px;
+}
+
+.comic-card {
+  position: relative;
+  background: #101010;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: 0.3s;
+}
+.comic-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.6);
+}
+.comic-card img {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+}
+.rank-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: #ffcb00;
+  color: #000;
+  font-weight: bold;
+  border-radius: 6px;
+  padding: 3px 6px;
+  font-size: 13px;
+}
+
+.comic-info h3 {
+  font-size: 1rem;
+  margin: 5px 0;
+  color: #fff;
+  height: 40px;
+  overflow: hidden;
+}
+.comic-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* 👈 canh giữa nội dung theo chiều ngang */
+  justify-content: center;
+  padding: 8px;
+  text-align: center;
+}
+
+.stat {
+  font-size: 0.9rem;
+  color: #ffd700;
+  font-weight: 500;
+  margin-top: 5px;
+  text-align: center;
+  width: 100%; /* 👈 đảm bảo chiếm toàn bộ chiều ngang để canh giữa */
+  text-shadow: 0 0 5px rgba(0,0,0,0.5);
+}
+
+
+</style>
+
+{% endblock %}

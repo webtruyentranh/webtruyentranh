@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Quản lý thể loại</title>
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body { background:#0f1419; color:#fff; font-family:sans-serif; margin:0; padding:20px; }
+    h1 { color:#4ade80; }
+    table { width:100%; border-collapse:collapse; background:#1e1e1e; border-radius:10px; overflow:hidden; }
+    th, td { padding:10px; border-bottom:1px solid #333; text-align:left; }
+    th { background:#222; color:#a5f3fc; }
+    tr:hover { background:#252525; }
+    form.inline { display:inline; }
+    input, button {
+      padding:8px 12px; border-radius:6px; border:1px solid #555;
+      background:#111; color:#fff;
+    }
+    .btn { background:#2563eb; color:white; border:none; padding:8px 14px; border-radius:6px; cursor:pointer; }
+    .btn:hover { filter:brightness(1.2); }
+    .btn-danger { background:#dc2626; }
+    .btn-danger:hover { background:#ef4444; }
+    .form-add { margin-bottom:20px; background:#1e1e1e; padding:15px; border-radius:10px; }
+    .btn-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.btn, .btn-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  border: none;
+  transition: 0.2s ease;
+}
+
+.btn {
+  background: #0ee532;
+  color: #fff;
+}
+.btn:hover {
+  background: #38f758;
+  transform: scale(1.05);
+}
+
+.btn-back {
+  background: #1050da;
+  color: #fff;
+}
+.btn-back:hover {
+  background: #2563eb;
+  transform: scale(1.05);
+}
+
+  </style>
+</head>
+<body>
+
+<h1>📚 Quản lý thể loại</h1>
+
+<div class="form-add">
+  <form action="{{ url_for('admin.add_genre') }}" method="post">
+    <label>Tên thể loại:</label>
+    <input type="text" name="name" required>
+    <label>Slug:</label>
+    <input type="text" name="slug" placeholder="tự tạo nếu để trống">
+    <div class="btn-row">
+      <button type="submit" class="btn">Thêm thể loại</button>
+      <a href="{{ url_for('index') }}" class="btn btn-back"> Trở về</a>
+    </div>
+  </form>
+</div>
+
+<table>
+  <tr>
+    <th>ID</th>
+    <th>Tên thể loại</th>
+    <th>Slug</th>
+    <th>Thao tác</th>
+  </tr>
+  {% for g in genres %}
+  <tr>
+    <td>{{ g.id }}</td>
+    <td>{{ g.name }}</td>
+    <td>{{ g.slug }}</td>
+    <td>
+      <form class="inline" method="post" action="{{ url_for('admin.delete_genre', id=g.id) }}"
+            onsubmit="return confirm('Xoá thể loại {{ g.name }}?');">
+        <button class="btn-danger"><i class="fa fa-trash"></i> Xoá</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+</body>
+</html>

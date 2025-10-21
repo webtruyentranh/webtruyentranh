@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="gl-container">
+  <h2 class="gl-title">Thể loại: {{ genre.name }}</h2>
+
+  {% if rows %}
+    <div class="gl-grid">
+      {% for c in rows %}
+        <a class="gl-card" href="/truyen/{{ c.slug }}">
+          <div class="gl-thumb">
+            <img src="{{ c.cover_url }}" alt="{{ c.title }}">
+          </div>
+          <div class="gl-meta">
+            <h3 class="gl-name">{{ c.title }}</h3>
+            <div class="gl-sub">
+              {{ c.latest_chapter or 'Chưa rõ' }}{% if c.ago %} · {{ c.ago }}{% endif %}
+            </div>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="gl-empty">Chưa có truyện nào thuộc thể loại này.</p>
+  {% endif %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Truyện đang theo dõi{% endblock %}
+
+{% block content %}
+<section class="container">
+  <h2 class="section-title">
+<h2 class="section-title">Truyện đang theo dõi</h2>
+  </h2>
+
+  {% if comics|length == 0 %}
+    <div class="empty">Bạn chưa theo dõi truyện nào.</div>
+  {% else %}
+    <div id="followGrid" class="cards">
+      {% for cm in comics %}
+      <div class="comic-card" data-slug="{{ cm.slug }}">
+        <a class="thumb" href="{{ url_for('comic_detail', slug=cm.slug) }}">
+          <img src="{{ cm.cover_url or '/static/img/placeholder.png' }}" alt="{{ cm.title }}">
+        </a>
+        <div class="meta">
+          <a class="title" href="{{ url_for('comic_detail', slug=cm.slug) }}">{{ cm.title }}</a>
+          <div class="sub">
+            <span> {{ cm.latest_chapter or '—' }}</span>
+            <span>    </span>
+            <span>{{ cm.followed_at | timeago }}</span>
+          </div>
+
+        </div>
+        <button class="btn btn--danger unfollow-btn" data-slug="{{ cm.slug }}">Bỏ theo dõi</button>
+      </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+</section>
+
+<style>
+  /* Container giữa trang */
+  .container{
+    max-width:1200px;
+    margin:0 auto;
+    padding:0 16px;
+    box-sizing:border-box;
+  }
+
+  /* Tiêu đề */
+  .section-title{
+    display:flex; align-items:center; justify-content:center;
+    gap:10px; font-size:30px; font-weight:700; margin:20px 0 16px;
+    text-align:center;
+    color:#fff; 
+  }
+  .section-pin{ display:none; } /* ẩn chấm đỏ */
+
+  /* LƯỚI: ép full width + chống CSS cũ đẩy sang phải */
+  .cards{
+    display:grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap:16px;
+    width:100% !important;
+    margin:0 !important;
+    justify-content:stretch !important;
+    align-content:start !important;
+    box-sizing:border-box;
+  }
+
+  /* CARD: chiều cao đều nhau, nút nằm đáy */
+  .comic-card{
+    display:flex; flex-direction:column;
+    background:#111827; border:1px solid #243041; border-radius:12px; overflow:hidden;
+    height:100%;
+    width:100%; 
+  }
+  .comic-card .thumb{ width:100%; aspect-ratio:3/4; overflow:hidden; }
+  .comic-card .thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+  .comic-card .meta{ padding:12px; flex:1; }
+  .comic-card .title{ display:block; font-weight:600; margin-bottom:6px; }
+  .comic-card .sub{ display:flex; flex-direction:column; gap:4px; opacity:.9; font-size:.9rem; }
+
+  .comic-card .btn{ margin:12px; margin-top:auto; }
+  .btn{ background:#0ea5e9; border:none; border-radius:8px; padding:8px 12px; color:#fff; cursor:pointer; }
+  .btn--danger{ background:#2563eb; }
+
+  /* Responsive (tùy chọn) */
+  @media (max-width: 560px){
+    .cards{ grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  }
+</style>
+
+
+
+<script>
+(() => {
+  const grid = document.getElementById('followGrid');
+  if (!grid) return;
+  grid.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.unfollow-btn');
+    if (!btn) return;
+    const slug = btn.dataset.slug;
+    const old = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Đang bỏ...';
+    try {
+      const res = await fetch(`/api/follow/${slug}/toggle`, { method: 'POST' });
+      if (res.status === 401) { alert('Vui lòng đăng nhập.'); return; }
+      const data = await res.json();
+      if (!data.ok) { alert('Có lỗi xảy ra.'); return; }
+      const card = grid.querySelector(`.comic-card[data-slug="${slug}"]`);
+      if (card) card.remove();
+      if (grid.children.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.textContent = 'Bạn chưa theo dõi truyện nào.';
+        grid.replaceWith(empty);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Lỗi mạng. Thử lại sau.');
+    } finally {
+      btn.disabled = false; btn.textContent = old;
+    }
+  });
+})();
+</script>
+{% endblock %}
