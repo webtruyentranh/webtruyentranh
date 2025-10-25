@@ -101,6 +101,32 @@ def add_comic():
                     cur.execute("UPDATE comics SET latest_chapter=%s, updated_at=NOW() WHERE id=%s", (1, comic_id))
 
         # flash("✅ Đã thêm truyện và chương đầu tiên!", "success")
+                    # --- 🔔 Gửi thông báo cho tất cả user (kể cả admin) khi có truyện mới ---
+                # --- 🔔 Gửi thông báo ---
+        try:
+            with get_conn() as conn2:
+                with conn2.cursor() as cur2:
+                    # 1️⃣ Thông báo cho tất cả user (trừ admin)
+                    cur2.execute("""
+                        INSERT INTO notifications (user_id, message)
+                        SELECT id, %s
+                        FROM users
+                        WHERE role IS NULL OR role != 'admin'
+                    """, (f"Truyện mới: {title} vừa được đăng, xem ngay thôi!",))
+
+                    # 2️⃣ Thông báo riêng cho admin (người đang đăng)
+                    cur2.execute("""
+                        INSERT INTO notifications (user_id, message)
+                        VALUES (%s, %s)
+                    """, (session.get("user_id"), f"Bạn vừa đăng truyện {title} thành công!"))
+
+                    conn2.commit()
+        except Exception as e:
+            print("⚠️ Lỗi khi gửi thông báo:", e)
+
+        
+
+
         return redirect(url_for("index"))
 
     # --- 5️⃣ GET: hiển thị form + danh sách ảnh có sẵn ---
@@ -243,7 +269,7 @@ def add_chapter(slug):
                     SELECT f.user_id, %s
                     FROM follows f
                     WHERE f.comic_id = %s
-                """, (f"Chương {number}{(': ' + title) if title else ''} của {comic_title} đã ra!", comic_id))
+                """, (f"Chương {number}{(': ' + title) if title else ''} của {comic_title} đã ra mắt!", comic_id))
 
             # đảm bảo kết nối sống & commit 1 lần
             try: conn.ping(reconnect=True)

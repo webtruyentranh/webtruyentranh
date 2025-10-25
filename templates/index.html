@@ -144,6 +144,8 @@
 {% endif %}
 {% if current_role == 'admin' %}
 <li><a href="{{ url_for('admin.manage_genres') }}">Quản lý thể loại</a></li>
+<li><a href="{{ url_for('admin.add_comic') }}">Tạo truyện mới</a></li>
+
 {% endif %}
 
   </ul>
