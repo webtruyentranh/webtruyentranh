@@ -144,6 +144,8 @@ def api_login():
     session["user_id"] = row["id"]
     session["username"] = row["username"]
     session["role"]     = row["role"] or "user"
+    session["email"] = row["email"] or "Chưa cập nhật email" 
+    session["avatar_url"] = row["avatar_url"] or url_for('static', filename='img/default-avatar.png') 
     return jsonify({"ok": True, "msg": f"Xin chào {row['username']}!",
                     "user": {"id": row["id"], "username": row["username"],
                              "email": row["email"], "avatar_url": row["avatar_url"], "role": row["role"]}})
@@ -152,6 +154,11 @@ def api_login():
 def api_logout():
     session.clear()
     return jsonify({"ok": True, "msg": "Đã đăng xuất.", "user": None})
+# đăng xuất của base
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
 
 @app.route("/api/me")
 def api_me():

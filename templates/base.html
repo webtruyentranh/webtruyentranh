@@ -44,31 +44,53 @@
   </div>
 </div>
 
-      {% if session.get('user_id') %}
-        <a href="{{ url_for('profile_page') }}">
-          <img id="userAvatarBase"
-            src="{{ session.get('avatar_url') if session.get('avatar_url') else url_for('static', filename='img/default-avatar.png') }}"
-            alt="Avatar" class="avatar">
-        </a>
-      {% else %}
-        <a href="{{ url_for('login') }}">
-          <img id="userAvatarBase"
-            src="{{ url_for('static', filename='img/default-avatar.png') }}" alt="Avatar" class="avatar">
-        </a>
-      {% endif %}
+{% if session.get('user_id') %}
+<div class="user-dropdown-container">
+  <div class="user-avatar" onclick="toggleUserDropdown()">
+    <img id="userAvatarBase"
+      src="{{ session.get('avatar_url') if session.get('avatar_url') else url_for('static', filename='img/default-avatar.png') }}"
+      alt="Avatar">
+  </div>
+
+  <div id="userDropdown" class="user-dropdown">
+    <div class="user-info">
+<img id="userAvatarDropdown"
+     src="{{ session.get('avatar_url') if session.get('avatar_url') else url_for('static', filename='img/default-avatar.png') }}"
+     alt="Avatar nhỏ">
+      <div>
+        <b>{{ session.get('username', 'Người dùng') }}</b><br>
+        <small style="color:#ccc;">{{ session.get('email', 'Chưa cập nhật email') }}</small>
+      </div>
+    </div>
+    <hr>
+
+    <a href="{{ url_for('profile_page') }}"><i class="fa-solid fa-user-pen"></i> Chỉnh sửa trang cá nhân</a>
+
+    {% if session.get('role') == 'admin' %}
+      <a href="{{ url_for('admin.add_comic') }}"><i class="fa-solid fa-square-plus"></i> Tạo truyện mới</a>
+    {% endif %}
+
+    <a href="{{ url_for('following_page') }}"><i class="fa-solid fa-bookmark"></i> Truyện đang theo dõi</a>
+    <a href="/lich-su"><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử đọc truyện</a>
+    <a href="/liked"><i class="fa-solid fa-heart"></i> Truyện đã thích</a>
+    <a href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</a>
+  </div>
+</div>
+{% else %}
+  <a href="{{ url_for('login') }}">
+    <img id="userAvatarBase"
+      src="{{ url_for('static', filename='img/default-avatar.png') }}" alt="Avatar" class="avatar">
+  </a>
+{% endif %}
+
     </div>
   </div>
   <nav class="navbar">
-  <ul>
-    <li>
-      <a href="{{ url_for('index') }}"
-         class="{% if request.path == '/' %}active{% endif %}">
-         Trang Chủ
-      </a>
-    </li>
+
 
    <ul>
-    <li><a href="#">Trang Chủ</a></li>
+<li><a href="{{ url_for('index') }}">Trang Chủ</a></li>
+
     <li class="dropdown">
   <a href="#">Thể loại ▾</a>
   <div class="dropdown-content mega-menu">
@@ -79,8 +101,7 @@
     
   </div>
 </li>
-  </div>
-    </li>
+
 
     <li class="dropdown">
   <a href="#">Xếp Hạng ▾</a>
@@ -151,6 +172,8 @@
          Quản lý thể loại
       </a>
     </li>
+    <li><a href="{{ url_for('admin.add_comic') }}">Tạo truyện mới</a></li>
+
     {% endif %}
   </ul>
 
@@ -247,6 +270,20 @@ document.addEventListener('click', (e) => {
 loadUnreadCount();
 setInterval(loadUnreadCount, 10000);
 </script>
+<script>
+function toggleUserDropdown() {
+  const menu = document.getElementById('userDropdown');
+  menu.classList.toggle('show');
+}
+
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('userDropdown');
+  const avatar = document.querySelector('.user-avatar img');
+  if (menu && !menu.contains(e.target) && e.target !== avatar) {
+    menu.classList.remove('show');
+  }
+});
+</script>
 
 <!-- DEBUG + CSS -->
 {% if request.args.get('debug') == '1' %}
@@ -254,6 +291,78 @@ setInterval(loadUnreadCount, 10000);
 {% endif %}
 
 <style>
+  .user-dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.user-avatar img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #444;
+  cursor: pointer;
+  object-fit: cover;
+  transition: 0.2s;
+}
+.user-avatar img:hover { border-color: #ff4444; transform: scale(1.05); }
+
+.user-dropdown {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 50px;
+  background: #0f1419;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+  width: 260px;
+  z-index: 9999;
+  overflow: hidden;
+  animation: slideDown 0.2s ease;
+}
+
+.user-dropdown.show {
+  display: block;
+}
+
+.user-dropdown a {
+  display: block;
+  color: #ddd;
+  text-decoration: none;
+  padding: 10px 16px;
+  font-size: 15px;
+  transition: 0.2s;
+}
+.user-dropdown a:hover {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+
+.user-dropdown i {
+  margin-right: 10px;
+  width: 18px;
+  color: #ffffff;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  gap: 10px;
+}
+
+.user-info img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .main-header {
   background: #111;
   width: 100%;
@@ -558,5 +667,13 @@ function renderAvatar(user){
   const data = await res.json();
   renderAvatar(data.user);
 })();
+const userAvatarDropdown = document.getElementById('userAvatarDropdown');
+
+function renderAvatar(user){
+  const url = user && user.avatar_url ? user.avatar_url : '{{ url_for("static", filename="img/default-avatar.png") }}';
+  if (userAvatarBase) userAvatarBase.src = url;
+  if (userAvatarDropdown) userAvatarDropdown.src = url;
+}
+
 </script>
 </html>
