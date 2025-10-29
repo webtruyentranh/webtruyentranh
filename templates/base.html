@@ -5,10 +5,9 @@
   <title>{% block title %}Website Truyện{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
 </head>
+
 <body>
-  <!-- PHẦN NAVBAR CHUNG -->
 <header class="main-header">
   <div class="nav-top">
     <div class="nav-left">
@@ -23,71 +22,238 @@
     </form>
 
     <div class="nav-right">
-  <i class="fa fa-bell bell"></i>
+      <!-- 🔔 Nút chuông + Hộp thông báo -->
+<div class="bell-container" style="position: relative;">
+  <i id="notifBell" class="fa fa-bell bell"></i>
+  <span id="notifCount"
+        style="display:none;position:absolute;top:-8px;right:-8px;
+               background:#ff4d4f;color:#fff;font-size:12px;
+               padding:2px 6px;border-radius:50%;">
+  </span>
 
-  {% if session.get('user_id') %}
-    <a href="{{ url_for('profile_page') }}">
-      <img 
-        src="{{ session.get('avatar_url') if session.get('avatar_url') else url_for('static', filename='img/default-avatar.png') }}"
-        alt="Avatar"
-        class="avatar">
-    </a>
-  {% else %}
-    <a href="{{ url_for('login') }}">
-      <img src="{{ url_for('static', filename='img/default-avatar.png') }}" alt="Avatar" class="avatar">
-    </a>
-  {% endif %}
+  <!-- Hộp thông báo -->
+  <div id="notifDropdown" class="notify-box">
+    <div class="notify-header">
+      <span>📜 Lịch sử theo dõi</span>
+      <button id="markAllRead">Đánh dấu đã đọc</button>
+    </div>
+    <div id="notifList" class="notify-list"></div>
+    <div id="notifEmpty" style="color:#aaa;text-align:center;padding:10px;">
+      Chưa có hoạt động nào
+    </div>
+  </div>
 </div>
 
-
-  </div>
-
-  <nav class="navbar">
-    <ul>
-      <li><a href="{{ url_for('index') }}" class="active">Trang Chủ</a></li>
-      <li class="dropdown">
-        <a href="#">Thể loại ▾</a>
-        <div class="dropdown-content">
-          {% for g in genres %}
-            <a href="/the-loai/{{ g.slug }}">{{ g.name }}</a>
-          {% endfor %}
-        </div>
-      </li>
-      <li><a href="/xep-hang">Xếp Hạng</a></li>
-      <li><a href="/lich-su">Lịch sử</a></li>
-      <li><a href="/following">Theo dõi</a></li>
-      <li><a href="/liked">Yêu thích</a></li>
-      <li><a href="{{ url_for('thaoluan') }}">Thảo luận</a></li>
-      <li><a href="{{ url_for('fanpage') }}">Fanpage</a></li>
-      <li><a href="{{ url_for('request_translate') }}">Yêu cầu dịch truyện</a></li>
-      {% if session.get('role') == 'admin' %}
-        <li><a href="{{ url_for('admin.manage_all_comics') }}">Quản lý truyện</a></li>
-        <li><a href="{{ url_for('admin.manage_genres') }}">Quản lý thể loại</a></li>
-        <li><a href="{{ url_for('admin.add_comic') }}">Tạo truyện mới</a></li>
-
+      {% if session.get('user_id') %}
+        <a href="{{ url_for('profile_page') }}">
+          <img id="userAvatarBase"
+            src="{{ session.get('avatar_url') if session.get('avatar_url') else url_for('static', filename='img/default-avatar.png') }}"
+            alt="Avatar" class="avatar">
+        </a>
+      {% else %}
+        <a href="{{ url_for('login') }}">
+          <img id="userAvatarBase"
+            src="{{ url_for('static', filename='img/default-avatar.png') }}" alt="Avatar" class="avatar">
+        </a>
       {% endif %}
+    </div>
+  </div>
+  <nav class="navbar">
+  <ul>
+    <li>
+      <a href="{{ url_for('index') }}"
+         class="{% if request.path == '/' %}active{% endif %}">
+         Trang Chủ
+      </a>
+    </li>
 
-    </ul>
-  </nav>
+   <ul>
+    <li><a href="#">Trang Chủ</a></li>
+    <li class="dropdown">
+  <a href="#">Thể loại ▾</a>
+  <div class="dropdown-content mega-menu">
+    {% for g in genres %}
+      <a href="/the-loai/{{ g.slug }}">{{ g.name }}</a>
+    {% endfor %}
+    
+    
+  </div>
+</li>
+  </div>
+    </li>
+
+    <li class="dropdown">
+  <a href="#">Xếp Hạng ▾</a>
+  <div class="dropdown-content sub-menu">
+    <a href="/xep-hang/xem">Top Lượt Xem</a>
+    <a href="/xep-hang/thich">Top Yêu Thích</a>
+    <a href="/xep-hang/theo-doi">Top Theo Dõi</a>
+    <a href="/xep-hang/danh-gia">Top Đánh Giá</a>
+    <a href="/xep-hang/ngay">Top Ngày</a>
+    <a href="/xep-hang/tuan">Top Tuần</a>
+    <a href="/xep-hang/thang">Top Tháng</a>
+    <a href="/xep-hang/tat-ca">Top Tổng Thể</a>
+  </div>
+</li>
+
+    <li>
+      <a href="/lich-su"
+         class="{% if '/lich-su' in request.path %}active{% endif %}">
+         Lịch sử
+      </a>
+    </li>
+
+    <li>
+      <a href="/following"
+         class="{% if '/following' in request.path %}active{% endif %}">
+         Theo dõi
+      </a>
+    </li>
+
+    <li>
+      <a href="/liked"
+         class="{% if '/liked' in request.path %}active{% endif %}">
+         Yêu thích
+      </a>
+    </li>
+
+    <li>
+      <a href="{{ url_for('thaoluan') }}"
+         class="{% if '/thaoluan' in request.path %}active{% endif %}">
+         Thảo luận
+      </a>
+    </li>
+
+    <li>
+      <a href="{{ url_for('fanpage') }}"
+         class="{% if '/fanpage' in request.path %}active{% endif %}">
+         Fanpage
+      </a>
+    </li>
+
+    <li>
+      <a href="{{ url_for('request_translate') }}"
+         class="{% if '/yeu-cau-dich' in request.path %}active{% endif %}">
+         Yêu cầu dịch truyện
+      </a>
+    </li>
+
+    {% if session.get('role') == 'admin' %}
+    <li>
+      <a href="{{ url_for('admin.manage_all_comics') }}"
+         class="{% if '/admin/manage_all_comics' in request.path %}active{% endif %}">
+         Quản lý truyện
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('admin.manage_genres') }}"
+         class="{% if '/admin/manage_genres' in request.path %}active{% endif %}">
+         Quản lý thể loại
+      </a>
+    </li>
+    {% endif %}
+  </ul>
+
+</nav>
+
 </header>
+<!-- PHẦN NỘI DUNG RIÊNG -->
+<main>
+  
+  {% block content %}{% endblock %}
+</main>
 
+<!-- 🧩 SCRIPT THÔNG BÁO -->
+<script>
+const notifBell = document.getElementById('notifBell');
+const notifCount = document.getElementById('notifCount');
+const notifDropdown = document.getElementById('notifDropdown');
+const notifList = document.getElementById('notifList');
+const notifEmpty = document.getElementById('notifEmpty');
 
-  <!-- CHỖ ĐỂ NỘI DUNG RIÊNG CỦA TỪNG TRANG -->
-  <main>
-    {% block content %}{% endblock %}
-  </main>
-</body>
-</html>
-<!-- debug -->
-{# Ẩn mặc định; mở khi cần #}
+// 🟢 Lấy danh sách thông báo từ Flask
+async function loadNotifications() {
+  try {
+    const res = await fetch('/notifications');
+    const data = await res.json();
+    notifList.innerHTML = '';
+
+    if (!data || data.length === 0) {
+      notifEmpty.textContent = 'Chưa có hoạt động nào.';
+      notifEmpty.style.display = 'block';
+      return;
+    }
+
+    notifEmpty.style.display = 'none';
+    data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    .forEach(item => {
+      const time = new Date(item.created_at).toLocaleString('vi-VN', {
+        hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit'
+      });
+      const div = document.createElement('div');
+      div.style.borderBottom = '1px solid #333';
+      div.style.padding = '6px 0';
+      div.innerHTML = `
+        <span style="color:${item.message.includes('theo dõi') ? '#22c55e' : '#ef4444'};">
+          ${item.message}
+        </span><br>
+        <small style="color:#999;">${time}</small>
+      `;
+      notifList.appendChild(div);
+    });
+  } catch (err) {
+    console.error('Lỗi khi tải thông báo:', err);
+    notifEmpty.textContent = 'Không thể tải dữ liệu.';
+  }
+}
+
+// 🟡 Đếm số thông báo chưa đọc
+async function loadUnreadCount() {
+  try {
+    const res = await fetch('/notifications/unread-count');
+    const data = await res.json();
+    if (data.count > 0) {
+      notifCount.textContent = data.count;
+      notifCount.style.display = 'inline-block';
+    } else {
+      notifCount.style.display = 'none';
+    }
+  } catch (e) {
+    console.error('Lỗi khi tải số chưa đọc:', e);
+  }
+}
+
+// 🔔 Xử lý khi nhấn chuông
+notifBell.addEventListener('click', async (e) => {
+  e.stopPropagation();
+  if (notifDropdown.style.display === 'none') {
+    notifDropdown.style.display = 'block';
+    await loadNotifications();
+    await fetch('/notifications/mark-read', { method: 'POST' });
+    notifCount.style.display = 'none';
+  } else {
+    notifDropdown.style.display = 'none';
+  }
+});
+
+// Ẩn dropdown khi click ra ngoài
+document.addEventListener('click', (e) => {
+  if (!notifDropdown.contains(e.target) && e.target !== notifBell) {
+    notifDropdown.style.display = 'none';
+  }
+});
+
+// 🕒 Tự cập nhật số đỏ mỗi 10 giây
+loadUnreadCount();
+setInterval(loadUnreadCount, 10000);
+</script>
+
+<!-- DEBUG + CSS -->
 {% if request.args.get('debug') == '1' %}
   <div class="debug-role">Role hiện tại: {{ current_role }}</div>
 {% endif %}
+
 <style>
-/* ===== HEADER TRÊN CÙNG ===== */
-/* Thanh trên cùng */
-/* ===== HEADER TRÊN CÙNG ===== */
-/* ===== HEADER CHUNG TRÊN CÙNG ===== */
 .main-header {
   background: #111;
   width: 100%;
@@ -96,7 +262,6 @@
   z-index: 1000;
 }
 
-/* Thanh top chứa logo + tìm kiếm + icon */
 .nav-top {
   display: flex;
   align-items: center;
@@ -106,10 +271,7 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, .4);
 }
 
-.logo img {
-  height: 40px;
-  display: block;
-}
+.logo img { height: 40px; display: block; }
 
 .search-bar {
   flex: 1;
@@ -127,7 +289,7 @@
   padding: 8px 14px;
   border: none;
   outline: none;
-  background: transparent;
+  background: transparent; 
   color: #fff;
   font-size: 15px;
 }
@@ -141,94 +303,260 @@
   transition: 0.2s;
   border-radius: 0 20px 20px 0;
 }
+.search-bar button:hover { background: #ef4444; }
 
-.search-bar button:hover {
-  background: #ef4444;
-}
-
-/* Chuông + avatar */
-.nav-right {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-
-.bell {
-  font-size: 20px;
-  color: #ccc;
-  cursor: pointer;
-  transition: 0.2s;
-}
-.bell:hover {
-  color: white;
-  transform: scale(1.1);
-}
+.nav-right { display: flex; align-items: center; gap: 18px; }
+.bell { font-size: 20px; color: #ccc; cursor: pointer; transition: 0.2s; }
+.bell:hover { color: white; transform: scale(1.1); }
 
 .avatar {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  border: 2px solid #444;
-  object-fit: cover;
-  transition: 0.2s;
+  width: 38px; height: 38px; border-radius: 50%;
+  border: 2px solid #444; object-fit: cover; transition: 0.2s;
 }
-.avatar:hover {
-  border-color: #dc2626;
-  transform: scale(1.1);
-}
+.avatar:hover { border-color: #dc2626; transform: scale(1.1); }
 
-/* Navbar phía dưới */
 .navbar {
   background: #1a1a1a;
   padding: 8px 0;
   border-top: 1px solid #222;
 }
-
 .navbar ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  justify-content: center;
-  gap: 28px;
+  list-style: none; margin: 0; padding: 0;
+  display: flex; justify-content: center; gap: 28px;
+}
+.navbar a {
+  color: #ccc; text-decoration: none; font-weight: 500; transition: 0.2s;
+}
+.navbar a:hover, .navbar a.active { color: #ff4444; }
+body {
+  padding-top: 105px; /* Điều chỉnh lại để khớp với 60px (nav-top) + ~45px (navbar) */
+  background:#000;
+  color:#fff;
+  /* (Giữ min-height: 1000px; để đảm bảo thanh cuộn luôn xuất hiện) */
+  min-height: 1000px;
 }
 
-.navbar a {
-  color: #ccc;
-  text-decoration: none;
-  font-weight: 500;
+/* ==== CẢI TIẾN GIAO DIỆN KHUNG THÔNG BÁO ==== */
+.notify-box {
+  background: #0b0f13 !important; /* nền tối đồng bộ */
+  color: #fff !important;
+  font-size: 16px !important; /* chữ to hơn */
+  font-family: "Segoe UI", sans-serif;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+}
+
+.notify-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #111820;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-weight: bold;
+  color: #fff;
+  font-size: 17px;
+}
+
+.notify-header button {
+  background: #fff;
+  color: #000;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+  font-weight: 600;
+}
+.notify-header button:hover {
+  background: #dc2626;
+  color: #fff;
+}
+
+.notify-list {
+  max-height: 400px;
+  overflow-y: auto;
+  color: #fff !important;
+  font-size: 16px;
+  line-height: 1.6;
+  padding: 10px;
+}
+
+.notify-list div {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 8px 0;
   transition: 0.2s;
 }
 
-.navbar a:hover, .navbar a.active {
+.notify-list div:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.notify-list span {
+  color: #fff !important;
+  font-size: 16px;
+}
+
+.notify-list small {
+  color: #ccc !important;
+  font-size: 14px;
+}
+
+#notifEmpty {
+  color: #aaa !important;
+  font-size: 15px;
+  text-align: center;
+  padding: 10px;
+}
+/* ====== THÔNG BÁO & LỊCH SỬ THEO DÕI (ĐÃ CHỈNH MÀU) ====== */
+.notify-box {
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  width: 380px;
+  max-height: 480px;
+  background: #0d1117; /* nền tối xanh đen hài hòa */
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.65);
+  overflow-y: auto;
+  color: #e6edf3;
+  font-family: "Segoe UI", sans-serif;
+  display: none;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.notify-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #161b22; /* xanh đen mờ */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-weight: 600;
+  color: #fff;
+}
+
+.notify-header span {
+  color: #fff;
+  font-size: 15px;
+}
+
+.notify-header button {
+  background: #000000; /* xanh lá kiểu GitHub */
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 13px;
+  font-weight: 600;
+}
+.notify-header button:hover {
+  background: #2ea043; /* sáng hơn khi hover */
+}
+
+/* Danh sách thông báo */
+.notify-list {
+  max-height: 400px;
+  overflow-y: auto;
+  background: #0d1117;
+}
+
+.notify-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background 0.2s, transform 0.1s;
+}
+.notify-item:hover {
+  background: rgba(56, 139, 253, 0.08);
+  transform: translateX(3px);
+}
+
+.notify-item.unread {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.notify-item .icon {
+  font-size: 18px;
+  color: #58a6ff; /* xanh lam tươi */
+  margin-right: 10px;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.notify-item .text {
+  flex: 1;
+  color: #c9d1d9;
+}
+
+.notify-item .text b {
+  color: #f0f6fc;
+}
+
+.notify-item .time {
+  font-size: 12px;
+  color: #8b949e;
+  margin-top: 4px;
+}
+
+/* Thanh cuộn tùy chỉnh */
+.notify-list::-webkit-scrollbar {
+  width: 6px;
+}
+.notify-list::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 4px;
+}
+
+/* Hiệu ứng trượt mượt */
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-15px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.notify-box.show {
+  display: block;
+  animation: slideDown 0.25s ease forwards;
+}
+
+/* Hiệu ứng chuông khi có thông báo mới */
+#notifyButton.has-unread {
   color: #ff4444;
+  animation: blink 1.2s infinite alternate;
+}
+@keyframes blink {
+  from { filter: brightness(1); }
+  to   { filter: brightness(1.8); }
 }
 body {
-  padding-top: 125px; /* header (65px) + navbar (60px) */
+    min-height: 1000px; /* Thêm chiều cao tối thiểu lớn để đảm bảo thanh cuộn xuất hiện */
 }
-
 </style>
 
-<script>
-async function loadUnreadNotifications() {
-  try {
-    const res = await fetch('/notifications/unread-count');
-    const data = await res.json();
-    const countEl = document.getElementById('notifCount');
-    if (data.count > 0) {
-      countEl.textContent = data.count;
-      countEl.style.display = 'inline-block';
-    } else {
-      countEl.style.display = 'none';
-    }
-  } catch(e) { console.error(e); }
-}
-loadUnreadNotifications();
-setInterval(loadUnreadNotifications, 10000); // cập nhật mỗi 10s
 
-document.getElementById('notifBell').addEventListener('click', async () => {
-  await fetch('/notifications/mark-read', { method: 'POST' });
-  document.getElementById('notifCount').style.display = 'none';
-  window.location.href = '/notifications';
-});
+
+</body>
+<script>
+const userAvatarBase = document.getElementById('userAvatarBase');
+
+function renderAvatar(user){
+  if(user && user.avatar_url){
+    userAvatarBase.src = user.avatar_url;
+  } else if (userAvatarBase) {
+    // Có thể cần xử lý lại ảnh mặc định
+    userAvatarBase.src = '{{ url_for("static", filename="img/default-avatar.png") }}';
+  }
+}
+
+/* Lấy trạng thái khi tải trang */
+(async ()=>{
+  const res = await fetch('/api/me');
+  const data = await res.json();
+  renderAvatar(data.user);
+})();
 </script>
+</html>
