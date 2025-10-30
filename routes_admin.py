@@ -201,7 +201,7 @@ def edit_comic(slug):
                 """, (f"Truyện {comic_title} vừa được cập nhật thông tin.", comic_id))
                 conn.commit()
 
-    flash("✅ Đã cập nhật truyện thành công!", "success")
+    # flash("✅ Đã cập nhật truyện thành công!", "success")
     return redirect(url_for("comic_detail", slug=newSlug))
 
 
@@ -213,13 +213,11 @@ def add_chapter(slug):
     title  = (request.form.get("title") or "").strip()
 
     if not number or number < 1:
-        flash("Số chương không hợp lệ", "error")
-        return redirect(url_for("comic_detail", slug=slug))
+        return {"ok": False, "error": "Số chương không hợp lệ"}
 
     files = [f for f in request.files.getlist("pages") if getattr(f, "filename", "")]
     if not files:
-        flash("Bạn chưa chọn ảnh nội dung cho chương.", "warning")
-        return redirect(url_for("comic_detail", slug=slug))
+        return {"ok": False, "error": "Bạn chưa chọn ảnh nội dung cho chương."}
 
     save_root = os.path.join(current_app.static_folder, "chapters", slug)
     os.makedirs(save_root, exist_ok=True)
@@ -227,23 +225,31 @@ def add_chapter(slug):
     try:
         with get_conn() as conn:
             with conn.cursor() as cur:
-                # 1) Lấy comic_id
+                # Kiểm tra chương đã tồn tại
+                cur.execute("""
+                    SELECT id FROM chapters
+                    WHERE comic_id = (SELECT id FROM comics WHERE slug=%s)
+                    AND number = %s
+                """, (slug, number))
+                if cur.fetchone():
+                    return {"ok": False, "error": f"Chương {number} đã tồn tại."}
+
+                # Lấy comic_id
                 cur.execute("SELECT id, title FROM comics WHERE slug=%s LIMIT 1", (slug,))
                 row = cur.fetchone()
                 if not row:
-                    flash("Không tìm thấy truyện", "error")
-                    return redirect(url_for("home"))
+                    return {"ok": False, "error": "Không tìm thấy truyện"}
                 comic_id = row["id"]
                 comic_title = row.get("title") or slug.replace("-", " ").title()
 
-                # 2) Tạo chương
+                # Tạo chương
                 cur.execute("""
                     INSERT INTO chapters(comic_id, number, title, created_at)
                     VALUES (%s, %s, %s, NOW())
                 """, (comic_id, number, title or None))
                 chapter_id = cur.lastrowid
 
-                # 3) Lưu file + ghi bảng chapter_images
+                # Lưu file + ghi bảng ảnh
                 page_no = 0
                 for f in files:
                     page_no += 1
@@ -257,37 +263,26 @@ def add_chapter(slug):
                         VALUES (%s, %s, %s, %s)
                     """, (comic_id, chapter_id, page_no, image_url))
 
-                # 4) Cập nhật latest_chapter
+                # Cập nhật latest_chapter
                 cur.execute(
                     "UPDATE comics SET latest_chapter=%s, updated_at=NOW() WHERE id=%s",
                     (number, comic_id)
                 )
 
-                # 5) Thông báo cho follower của truyện
+                # Thông báo cho follower
                 cur.execute("""
                     INSERT INTO notifications (user_id, message)
-                    SELECT f.user_id, %s
-                    FROM follows f
-                    WHERE f.comic_id = %s
+                    SELECT f.user_id, %s FROM follows f WHERE f.comic_id=%s
                 """, (f"Chương {number}{(': ' + title) if title else ''} của {comic_title} đã ra mắt!", comic_id))
 
-            # đảm bảo kết nối sống & commit 1 lần
-            try: conn.ping(reconnect=True)
-            except: pass
             conn.commit()
 
-        # flash("✅ Đã thêm chương và lưu ảnh nội dung!", "success")
-        return redirect(url_for("comic_detail", slug=slug))
+        return {"ok": True}
 
     except Exception as e:
-        # rollback an toàn nếu có lỗi
-        try:
-            conn.rollback()
-        except:
-            pass
-        # log nếu cần: current_app.logger.exception(e)
-        flash("Có lỗi khi thêm chương.", "error")
-        return redirect(url_for("comic_detail", slug=slug))
+        try: conn.rollback()
+        except: pass
+        return {"ok": False, "error": "Lỗi khi thêm chương: " + str(e)}
 
 # ========== XÓA CHƯƠNG ==========
 @admin_bp.post("/comic/<slug>/chapter/<int:chapter_id>/delete")
@@ -330,7 +325,7 @@ def delete_chapter(slug, chapter_id):
             mx = cur.fetchone()["mx"]
             cur.execute("UPDATE comics SET latest_chapter=%s, updated_at=NOW() WHERE id=%s", (mx, comic_id))
 
-    flash("Đã xóa chương.", "success")
+    # flash("Đã xóa chương.", "success")
     return redirect(url_for("comic_detail", slug=slug))
 
 @admin_bp.post("/comic/<slug>/delete")

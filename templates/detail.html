@@ -538,7 +538,16 @@ function previewCover(event) {
 <div id="addChapterModal" class="modal">
   <div class="modal__card">
     <h3>Thêm chương mới</h3>
-
+<!-- Thông báo lỗi/thành công trong form -->
+<div id="formMessage" style="
+  display:none;
+  margin: 10px 0;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 14px;
+  text-align: center;
+"></div>
     <!-- THÊM enctype -->
     <form method="POST"
           action="{{ url_for('admin.add_chapter', slug=comic.slug) }}"
@@ -569,7 +578,57 @@ function previewCover(event) {
         <button type="button" class="btn" onclick="closeModal('addChapterModal')">Đóng</button>
         <button class="btn btn--success" type="submit">Thêm</button>
       </div>
+      
     </form>
+    
+<script>
+document.getElementById("addChapterForm").addEventListener("submit", async function(e) {
+  e.preventDefault();
+  const form = e.target;
+  const formData = new FormData(form);
+  const msgBox = document.getElementById("formMessage");
+
+  msgBox.style.display = "none";
+
+  try {
+    const res = await fetch(form.action, { method: "POST", body: formData });
+    const data = await res.json();
+
+    if (data.ok) {
+  showMessage("✅ Thêm chương thành công!", "success");
+  setTimeout(() => {
+    window.location.href = "{{ url_for('comic_detail', slug=comic.slug) }}";
+  }, 500);
+
+
+    } else {
+      showMessage("❌ " + (data.error || "Có lỗi khi thêm chương!"), "error");
+    }
+
+  } catch {
+    showMessage("❌ Lỗi mạng hoặc server!", "error");
+  }
+
+  function showMessage(msg, type) {
+    msgBox.textContent = msg;
+    msgBox.style.display = "block";
+    msgBox.style.background = (type === "success") ? "#14532d" : "#7f1d1d";
+    msgBox.style.border = (type === "success") ? "1px solid #22c55e" : "1px solid #ef4444";
+    msgBox.style.color = "white";
+    msgBox.style.animation = "fadeInOut 3s forwards";
+  }
+});
+</script>
+
+<style>
+@keyframes fadeInOut {
+  0% {opacity: 0;}
+  10%, 90% {opacity: 1;}
+  100% {opacity: 0;}
+}
+</style>
+
+
   </div>
 </div>
 

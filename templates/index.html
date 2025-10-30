@@ -69,14 +69,14 @@
         </div>
       </div>
       <a class="menu-item" href="/profile">
-        <i class="fa-solid fa-user-pen"></i><span>Chỉnh sửa trang cá nhân</span></a>
-      {% if current_role == 'admin' %}
+        <i class="fa-solid fa-user-pen"></i><span>Cài đặt tài khoản</span></a>
+      <!-- {% if current_role == 'admin' %}
     <a class="menu-item" href="{{ url_for('admin.add_comic') }}">
        <i class="fa-solid fa-square-plus"></i><span>Tạo truyện mới</span>
     </a>
     
-  {% endif %}
-
+  {% endif %} -->
+<!-- 
 {% if session.get('user_id') %}
   <a class="menu-item" href="{{ url_for('following_page') }}">
     <i class="fa-solid fa-bookmark"></i><span>Truyện đang theo dõi</span>
@@ -88,7 +88,7 @@
       <a class="menu-item" href="/liked">
         <i class="fa-solid fa-heart"></i><span>Truyện đã thích</span>
 
-      </a>
+      </a> -->
 
       <a class="menu-item" id="menuLogout" href="#">
          <i class="fa-solid fa-right-from-bracket"></i><span>Đăng xuất</span>
